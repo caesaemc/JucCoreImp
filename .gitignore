@@ -1,4 +1,5 @@
 target/
+jcstress-results-*.bin.gz
 .idea/
 *.iml
 .DS_Store
