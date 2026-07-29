@@ -76,8 +76,8 @@ java -cp target/classes com.caesaemc.juc.lesson16.CapstoneApplication
 
 | 课次 | 主题 | 学习入口 |
 |---|---|---|
-| 01 | 并发问题与 JMM | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site) · [讲义](docs/lesson-01/README.md) · [练习](docs/lesson-01/EXERCISES.md) · [面试](docs/lesson-01/INTERVIEW.md) |
-| 02 | volatile、synchronized、安全发布 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=02) · [讲义](docs/lesson-02/README.md) · [练习](docs/lesson-02/EXERCISES.md) · [面试](docs/lesson-02/INTERVIEW.md) |
+| 01 | 并发问题与 JMM | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site) · [讲义](docs/lesson-01/README.md) · [练习](docs/lesson-01/EXERCISES.md) · [面试](docs/lesson-01/INTERVIEW.md) · [学习档案](docs/learning-journal/lesson-01.md) |
+| 02 | volatile、synchronized、安全发布 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=02) · [讲义](docs/lesson-02/README.md) · [练习](docs/lesson-02/EXERCISES.md) · [面试](docs/lesson-02/INTERVIEW.md) · [学习档案](docs/learning-journal/lesson-02.md) |
 | 03 | 线程、中断、取消、ThreadLocal | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=03) · [讲义](docs/lesson-03/README.md) · [练习](docs/lesson-03/EXERCISES.md) · [面试](docs/lesson-03/INTERVIEW.md) |
 | 04 | CAS、ABA、原子类、LongAdder | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=04) · [讲义](docs/lesson-04/README.md) · [练习](docs/lesson-04/EXERCISES.md) · [面试](docs/lesson-04/INTERVIEW.md) |
 | 05 | AQS、ReentrantLock、Condition | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=05) · [讲义](docs/lesson-05/README.md) · [练习](docs/lesson-05/EXERCISES.md) · [面试](docs/lesson-05/INTERVIEW.md) |

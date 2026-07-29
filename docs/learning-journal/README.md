@@ -57,7 +57,7 @@
 | 课次 | 主题 | 学习状态 | 档案 |
 |---|---|---|---|
 | 01 | 并发问题与 Java 内存模型 | 进行中 | [lesson-01.md](lesson-01.md) |
-| 02 | volatile、synchronized 与安全发布 | 未开始 | 学习时创建 |
+| 02 | volatile、synchronized 与安全发布 | 进行中 | [lesson-02.md](lesson-02.md) |
 | 03 | 线程生命周期、中断与取消 | 未开始 | 学习时创建 |
 | 04 | CAS、原子类与高竞争计数 | 未开始 | 学习时创建 |
 | 05 | AQS、ReentrantLock 与 Condition | 未开始 | 学习时创建 |
