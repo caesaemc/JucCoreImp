@@ -1,19 +1,22 @@
-# JUC Core Lab
+# JUC 快速面试课网页
 
-JucCoreImp 的 16 课交互式学习网站。所有课程位于同一个页面，通过顶部课程 Tab 切换，也支持 `?lesson=02`～`?lesson=16` 深链接。
+一个页面承载全部 6 课：
 
-## 每课固定组成
+- 顶部：6 课切换和浅色/深色按钮。
+- 左侧固定：每课 5 项 Todo。
+- 中间：内存大框、对象小框、数据箭头、真实源码、一个练习、三道题。
+- 右侧固定：一页讲义。
 
-- 本地持久化的 8 项学习 TODO。
-- 三个核心概念及适用边界。
-- 六步可播放状态流，展示总体流程和每一步输入/输出。
-- 四个数据区域，明确线程本地、共享状态、控制状态和资源容量。
-- 四条数据路由，展示来源、同步通道、目标和保证。
-- 至少三份与 GitHub 真实文件和行号对应的源码片段。
-- 运行命令、动手练习、测试验收和五道面试口述题。
-- 顶部课程栏支持浅色/深色主题切换，选择保存在浏览器本地。
+课程合并：
 
-第 01 课保留专属的丢失更新、真实计数分布和 happens-before 交互实验；第 02～16 课使用统一页面协议并保留各自专属内容。
+```text
+01        → 共享数据与 JMM
+02        → volatile、锁与安全发布
+03～06    → 线程协作、CAS、锁与同步器
+07～08    → 并发集合与队列
+09～13    → 线程池、异步与虚拟线程
+14～16    → 可靠性、排障与综合项目
+```
 
 ## 本地运行
 
@@ -31,7 +34,7 @@ npm test
 npm run lint
 ```
 
-Java 源码或行号变化后重新生成网页源码片段：
+Java 源码行号变化后重新生成网页片段：
 
 ```bash
 npm run generate:sources
@@ -40,14 +43,15 @@ npm run generate:sources
 ## 关键文件
 
 ```text
-app/page.tsx                       课程 Tab、深链接和总进度
-app/lesson-one.tsx                 第一课专属交互实验
-app/lesson-workspace.tsx           第 02～16 课统一学习界面
-app/course-data.ts                 15 课结构化课程内容
-app/source-snippets.generated.ts   从 Java 源码生成的真实片段
+app/page.tsx                       6 课切换、进度和配色
+app/fast-course-data.ts            6 课精简讲义与合并关系
+app/lesson-workspace.tsx           统一三栏学习界面
+app/lesson-one-simple-data.ts      第一课简明数据
+app/course-data.ts                 原 16 课深入内容
+app/source-snippets.generated.ts   从 Java 源码生成的片段
 scripts/generate-course-sources.mjs
-app/globals.css                    视觉系统与响应式布局
-tests/                             16 课结构和源码一致性验证
+app/globals.css                    简化视觉与响应式布局
+tests/                             页面与源码一致性检查
 ```
 
-TODO 勾选状态和主题偏好只保存在浏览器 `localStorage`，不上传个人数据。
+Todo 和主题只保存在浏览器 `localStorage`，不会上传个人数据。

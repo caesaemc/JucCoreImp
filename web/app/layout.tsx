@@ -23,32 +23,23 @@ export async function generateMetadata(): Promise<Metadata> {
     ?? (host.startsWith("localhost") ? "http" : "https");
   const origin = `${protocol}://${host}`;
   const description =
-    "16 课 Java JUC 交互学习站：逐课推演总体流程、数据分布、数据流向，并联动真实源码、练习和面试验收。";
+    "6 课 Java JUC 快速面试学习站：一份讲义、5 项 Todo、简明内存图、真实源码和 3 道面试题。";
 
   return {
-    title: "JUC Core Lab · 16 课交互学习站",
+    title: "JUC 快速面试课 · 6 课精简版",
     description,
     metadataBase: new URL(origin),
     openGraph: {
-      title: "JUC Core Lab · 16 课交互学习站",
+      title: "JUC 快速面试课 · 6 课精简版",
       description,
       type: "website",
       locale: "zh_CN",
       url: origin,
-      images: [
-        {
-          url: `${origin}/og.png`,
-          width: 1731,
-          height: 909,
-          alt: "JUC Core Lab：16 课 Java 并发系统交互学习地图",
-        },
-      ],
     },
     twitter: {
-      card: "summary_large_image",
-      title: "JUC Core Lab · 16 课交互学习站",
+      card: "summary",
+      title: "JUC 快速面试课 · 6 课精简版",
       description,
-      images: [`${origin}/og.png`],
     },
   };
 }

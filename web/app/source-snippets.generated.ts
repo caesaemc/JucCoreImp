@@ -20,58 +20,62 @@ export const sourceSnippets = [
     "tab": "不可变快照",
     "path": "src/main/java/com/caesaemc/juc/lesson02/SafePublicationDemo.java",
     "startLine": 67,
-    "endLine": 80,
+    "endLine": 94,
     "highlights": [
-      68,
-      74,
-      75,
+      70,
+      76,
       78,
-      79
+      81,
+      84,
+      89,
+      93
     ],
-    "note": "完整构造 Settings 后，只通过一次 volatile 引用替换发布；读者拿到旧快照或新快照，不会拿到混合字段。",
+    "note": "先完整构造 Settings，再替换一次 volatile 引用；读线程只取一次引用，所以不会把两个版本的字段混在一起。",
     "filename": "SafePublicationDemo.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson02/SafePublicationDemo.java#L67-L80",
-    "code": "    public static final class ConfigRepository {\n        private volatile Settings current;\n\n        public ConfigRepository(Settings initial) {\n            this.current = initial;\n        }\n\n        public Settings snapshot() {\n            return current;\n        }\n\n        public void update(Settings settings) {\n            current = settings;\n        }"
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson02/SafePublicationDemo.java#L67-L94",
+    "code": "    public static final class ConfigRepository {\n        // 所有线程只通过 current 取得配置。\n        // volatile 让“换新配置”和“读取新配置”建立可靠的交接。\n        private volatile Settings current;\n\n        public ConfigRepository(Settings initial) {\n            this.current = initial;\n        }\n\n        public Settings snapshot() {\n            // 只读一次引用，后面一直使用同一个 Settings 版本。\n            return current;\n        }\n\n        public void update(Settings settings) {\n            // settings 在传进来之前已经完整构造。\n            // 这里只替换一次引用，不会逐个修改配置字段。\n            current = settings;\n        }\n    }\n\n    // record 的字段都是 final；对象建好以后不再修改。\n    public record Settings(int version, int timeoutMillis, int retries, int checksum) {\n\n        public static Settings of(int version, int timeoutMillis, int retries) {\n            // 先把同一版本的所有字段放进一个新对象。\n            return new Settings(version, timeoutMillis, retries, checksum(version, timeoutMillis, retries));\n        }"
   },
   {
     "key": "02-dcl",
     "tab": "DCL 单例",
     "path": "src/main/java/com/caesaemc/juc/lesson02/DclSingleton.java",
     "startLine": 8,
-    "endLine": 27,
+    "endLine": 34,
     "highlights": [
-      8,
-      17,
-      18,
+      9,
       19,
-      20,
       21,
       22,
-      23
+      24,
+      25,
+      27,
+      29,
+      33
     ],
-    "note": "第一次读取避开常规加锁，第二次检查防止重复构造；volatile 负责安全发布并约束重排序。",
+    "note": "第一次检查避免每次加锁，锁内第二次检查避免重复创建；volatile 把完整对象交给其他线程。",
     "filename": "DclSingleton.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson02/DclSingleton.java#L8-L27",
-    "code": "    private static volatile DclSingleton instance;\n\n    private final long createdAtNanos;\n\n    private DclSingleton() {\n        createdAtNanos = System.nanoTime();\n    }\n\n    public static DclSingleton instance() {\n        DclSingleton local = instance;\n        if (local == null) {\n            synchronized (DclSingleton.class) {\n                local = instance;\n                if (local == null) {\n                    local = new DclSingleton();\n                    instance = local;\n                }\n            }\n        }\n        return local;"
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson02/DclSingleton.java#L8-L34",
+    "code": "    // 这是其他线程取得单例的共享入口，必须安全发布。\n    private static volatile DclSingleton instance;\n\n    private final long createdAtNanos;\n\n    private DclSingleton() {\n        createdAtNanos = System.nanoTime();\n    }\n\n    public static DclSingleton instance() {\n        // 先复制到局部变量，后面少读几次 volatile。\n        DclSingleton local = instance;\n        // 已经创建过时直接返回，不必每次都加锁。\n        if (local == null) {\n            synchronized (DclSingleton.class) {\n                // 等锁期间，另一个线程可能已经创建完成，所以要再检查一次。\n                local = instance;\n                if (local == null) {\n                    // 先把对象完整创建好。\n                    local = new DclSingleton();\n                    // 再通过 volatile 引用交给其他线程。\n                    instance = local;\n                }\n            }\n        }\n        return local;\n    }"
   },
   {
     "key": "02-exercise",
     "tab": "序号练习",
     "path": "src/main/java/com/caesaemc/juc/lesson02/SequenceExercise.java",
     "startLine": 8,
-    "endLine": 17,
+    "endLine": 19,
     "highlights": [
-      8,
-      10,
+      9,
       11,
       12,
-      15,
-      16
+      13,
+      16,
+      17,
+      18
     ],
-    "note": "volatile 只能让新值可见，不能把 ++ 合成原子动作；练习要求 next 与 current 使用同一监视器。",
+    "note": "volatile 只能让新值可见，不能把 ++ 合成一个动作；练习要求 next 与 current 使用同一把锁。",
     "filename": "SequenceExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson02/SequenceExercise.java#L8-L17",
-    "code": "    private volatile int sequence;\n\n    public int next() {\n        // TODO：volatile 不能保证 ++ 的原子性，请修复。\n        return ++sequence;\n    }\n\n    public int current() {\n        return sequence;\n    }"
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson02/SequenceExercise.java#L8-L19",
+    "code": "    // volatile 能让新值可见，但不能保护“读取、加一、写回”这一整段。\n    private volatile int sequence;\n\n    public int next() {\n        // TODO：多个线程可能读到同一个旧值，请让整个 ++ 一次只由一个线程执行。\n        return ++sequence;\n    }\n\n    public int current() {\n        // 思考：它应该和 next() 使用哪一把锁，才能可靠看到已完成的更新？\n        return sequence;\n    }"
   },
   {
     "key": "03-termination",

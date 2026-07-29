@@ -26,15 +26,20 @@ public final class VolatileCounterDemo {
     }
 
     public static final class VolatileCounter implements Counter {
+        // volatile 只保证：一个线程写入后，其他线程能看到新值。
+        // 它不会把下面的 value++ 变成一个不可拆分的动作。
         private volatile int value;
 
         @Override
         public void increment() {
+            // 实际过程是：读 value → 加 1 → 写回。
+            // 两个线程可能读到同一个旧值，最后写回同一个新值。
             value++;
         }
 
         @Override
         public int value() {
+            // 这里能看到较新的值，但之前丢掉的更新不会被补回来。
             return value;
         }
     }

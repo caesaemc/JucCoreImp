@@ -2,15 +2,15 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
-const templateRoot = new URL("../", import.meta.url);
+const webRoot = new URL("../", import.meta.url);
 
-async function render() {
+async function render(path = "/") {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
 
   return worker.fetch(
-    new Request("http://localhost/", {
+    new Request(`http://localhost${path}`, {
       headers: { accept: "text/html" },
     }),
     {
@@ -29,20 +29,6 @@ function occurrences(value, pattern) {
   return value.match(pattern)?.length ?? 0;
 }
 
-function lessonSection(courseData, number, nextNumber) {
-  const marker = `\n    number: "${number}",\n    stage:`;
-  const start = courseData.indexOf(marker);
-  assert.notEqual(start, -1, `缺少第 ${number} 课详情`);
-
-  if (!nextNumber) {
-    return courseData.slice(start);
-  }
-  const nextMarker = `\n    number: "${nextNumber}",\n    stage:`;
-  const end = courseData.indexOf(nextMarker, start + marker.length);
-  assert.notEqual(end, -1, `无法确定第 ${number} 课结束位置`);
-  return courseData.slice(start, end);
-}
-
 function between(value, startMarker, endMarker) {
   const start = value.indexOf(startMarker);
   const end = value.indexOf(endMarker, start + startMarker.length);
@@ -50,81 +36,50 @@ function between(value, startMarker, endMarker) {
   return value.slice(start, end);
 }
 
-test("server-renders the 16-lesson course dock and lesson one", async () => {
+test("默认打开精简后的第 02 课", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(
-    html,
-    /<title>JUC Core Lab · 16 课交互学习站<\/title>/i,
-  );
+  assert.match(html, /<title>JUC 快速面试课 · 6 课精简版<\/title>/i);
   assert.match(html, /<html[^>]+data-theme="light"/i);
-  assert.match(html, /aria-label="16 课课程切换"/);
-  assert.match(html, /aria-label="切换为深色模式"/);
-  assert.match(html, /aria-label="第 01 课：并发问题与 Java 内存模型"/);
-  assert.match(html, /aria-label="第 16 课：高并发多下游聚合服务"/);
-  assert.match(html, /确定性丢失更新推演/);
-  assert.match(html, /happens-before 数据流/);
-  assert.match(html, /DeterministicLostUpdateDemo\.java/);
-  assert.match(html, /data-testid="learning-checklist"/);
-  assert.doesNotMatch(html, /codex-preview|Your site is taking shape/i);
+  assert.match(html, /aria-label="6 课快速面试课程切换"/);
+  assert.match(html, /aria-label="第 01 课：共享数据与 Java 内存模型"/);
+  assert.match(html, /aria-label="第 06 课：可靠性、排障与综合项目"/);
+  assert.match(html, /volatile、synchronized 与安全发布/);
+  assert.match(html, /JVM \/ 程序内存（简化图）/);
+  assert.match(html, /ConfigRepository 对象/);
+  assert.match(html, /一页讲义/);
+  assert.match(html, /只做这 5 件事/);
+  assert.match(html, /data-testid="learning-checklist-02"/);
+  assert.doesNotMatch(html, /自动播放|DATA ROUTING TABLE|16 LESSONS/);
 });
 
-test("every lesson 02-16 has the same complete learning contract", async () => {
-  const courseData = await readFile(
-    new URL("../app/course-data.ts", import.meta.url),
+test("学习入口只有 6 课，并明确记录原 16 课合并关系", async () => {
+  const fastData = await readFile(
+    new URL("../app/fast-course-data.ts", import.meta.url),
     "utf8",
   );
-  const numbers = Array.from({ length: 15 }, (_, index) =>
-    String(index + 2).padStart(2, "0"),
+  const tabs = between(
+    fastData,
+    "export const fastCourseTabs",
+    "function legacy",
+  );
+  const lessons = between(
+    fastData,
+    "export const fastLessons",
+    "export function getFastLessonDetail",
   );
 
-  numbers.forEach((number, index) => {
-    const section = lessonSection(courseData, number, numbers[index + 1]);
-    const concepts = between(section, "concepts: [", "flowTitle:");
-    const flow = between(section, "flow: [", "zones: [");
-    const zones = between(section, "zones: [", "routes: [");
-    const routes = between(section, "routes: [", "sourceKeys:");
-    const interview = between(section, "interview: [", "finish:");
-    const sourceKeys = section.match(/sourceKeys:\s*\[([^\]]+)\]/)?.[1] ?? "";
-
-    assert.equal(
-      occurrences(concepts, /\n\s+code:/g),
-      3,
-      `第 ${number} 课必须有 3 个核心概念`,
-    );
-    assert.equal(
-      occurrences(flow, /\n\s+label:/g),
-      6,
-      `第 ${number} 课必须有 6 个流程步骤`,
-    );
-    assert.equal(
-      occurrences(zones, /\n\s+code:/g),
-      4,
-      `第 ${number} 课必须有 4 个数据分布区域`,
-    );
-    assert.equal(
-      occurrences(routes, /\n\s+data:/g),
-      4,
-      `第 ${number} 课必须有 4 条数据路由`,
-    );
-    assert.ok(
-      occurrences(sourceKeys, /"[0-9]{2}-[^"]+"/g) >= 3,
-      `第 ${number} 课必须有至少 3 份源码片段`,
-    );
-    assert.match(section, /exercise:\s*\{/);
-    assert.match(section, /testCommand:/);
-    assert.equal(
-      occurrences(interview, /\n\s+question:/g),
-      5,
-      `第 ${number} 课必须有 5 道面试题`,
-    );
-  });
+  assert.equal(occurrences(tabs, /\n\s+number: "/g), 6);
+  assert.equal(occurrences(lessons, /\n\s+lesson0[1-6],/g), 6);
+  assert.match(fastData, /合并原第 03～06 课/);
+  assert.match(fastData, /合并原第 09～13 课/);
+  assert.match(fastData, /合并原第 14～16 课/);
 });
 
-test("generated source snippets exactly match the Java repository", async () => {
+test("生成的源码片段与 Java 文件完全一致", async () => {
   const generated = await readFile(
     new URL("../app/source-snippets.generated.ts", import.meta.url),
     "utf8",
@@ -158,32 +113,31 @@ test("generated source snippets exactly match the Java repository", async () => 
   }
 });
 
-test("keeps local progress, persists theme, and removes starter assets", async () => {
-  const [page, lessonOne, workspace, layout, styles, packageJson] =
-    await Promise.all([
-      readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-      readFile(new URL("../app/lesson-one.tsx", import.meta.url), "utf8"),
-      readFile(new URL("../app/lesson-workspace.tsx", import.meta.url), "utf8"),
-      readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-      readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
-      readFile(new URL("../package.json", import.meta.url), "utf8"),
-    ]);
+test("每课只有 5 项 Todo，进度和主题保存在本地", async () => {
+  const [page, workspace, layout, styles, packageJson] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/lesson-workspace.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+    readFile(new URL("../package.json", import.meta.url), "utf8"),
+  ]);
 
+  const todoBlock = between(
+    workspace,
+    "const TODO_ITEMS",
+    "function explainCodeLine",
+  );
+  assert.equal(occurrences(todoBlock, /\n\s+id: "/g), 5);
+  assert.match(page, /const TODO_TOTAL = 5/);
   assert.match(page, /searchParams\.set\("lesson"/);
-  assert.match(page, /courseTabs/);
-  assert.match(lessonOne, /juc-course\.lesson-01\.todos\.v1/);
-  assert.match(workspace, /juc-course\.lesson-\$\{lesson\.number\}\.todos\.v1/);
+  assert.match(workspace, /todos\.v2/);
   assert.match(workspace, /juc-progress-update/);
   assert.match(page, /juc-course\.theme\.v1/);
-  assert.match(page, /document\.documentElement\.dataset\.theme/);
   assert.match(layout, /data-theme="light"/);
-  assert.match(layout, /window\.localStorage\.getItem\("juc-course\.theme\.v1"\)/);
-  assert.match(styles, /html\[data-theme="light"\]/);
-  assert.match(styles, /\.theme-toggle/);
-  assert.match(layout, /lang="zh-CN"/);
+  assert.match(styles, /html\[data-theme="dark"\]/);
+  assert.match(styles, /\.simple-todo/);
+  assert.match(styles, /\.simple-guide/);
   assert.match(packageJson, /generate:sources/);
-  assert.doesNotMatch(packageJson, /react-loading-skeleton/);
-  await assert.rejects(
-    access(new URL("../app/_sites-preview", templateRoot)),
-  );
+  assert.doesNotMatch(workspace, /自动播放|flowStep|DATA ROUTING TABLE/);
+  await assert.rejects(access(new URL("../app/lesson-one.tsx", webRoot)));
 });

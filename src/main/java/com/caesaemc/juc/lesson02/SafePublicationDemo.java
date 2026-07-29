@@ -65,6 +65,8 @@ public final class SafePublicationDemo {
     }
 
     public static final class ConfigRepository {
+        // 所有线程只通过 current 取得配置。
+        // volatile 让“换新配置”和“读取新配置”建立可靠的交接。
         private volatile Settings current;
 
         public ConfigRepository(Settings initial) {
@@ -72,17 +74,22 @@ public final class SafePublicationDemo {
         }
 
         public Settings snapshot() {
+            // 只读一次引用，后面一直使用同一个 Settings 版本。
             return current;
         }
 
         public void update(Settings settings) {
+            // settings 在传进来之前已经完整构造。
+            // 这里只替换一次引用，不会逐个修改配置字段。
             current = settings;
         }
     }
 
+    // record 的字段都是 final；对象建好以后不再修改。
     public record Settings(int version, int timeoutMillis, int retries, int checksum) {
 
         public static Settings of(int version, int timeoutMillis, int retries) {
+            // 先把同一版本的所有字段放进一个新对象。
             return new Settings(version, timeoutMillis, retries, checksum(version, timeoutMillis, retries));
         }
 

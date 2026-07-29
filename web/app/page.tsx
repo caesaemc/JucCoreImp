@@ -2,17 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  courseTabs,
-  getLessonDetail,
-  stageLabels,
-  type CourseTab,
-} from "./course-data";
-import LessonOne from "./lesson-one";
+  fastCourseTabs,
+  getFastLessonDetail,
+} from "./fast-course-data";
+import type { CourseTab } from "./course-data";
 import LessonWorkspace from "./lesson-workspace";
 
 type Theme = "light" | "dark";
-
-const THEME_STORAGE_KEY = "juc-course.theme.v1";
 
 type ProgressSnapshot = Record<
   string,
@@ -22,23 +18,33 @@ type ProgressSnapshot = Record<
   }
 >;
 
+const DEFAULT_LESSON = "02";
+const TODO_TOTAL = 5;
+const THEME_STORAGE_KEY = "juc-course.theme.v1";
+
 function isLessonNumber(value: string | null): value is string {
-  return value !== null && courseTabs.some((lesson) => lesson.number === value);
+  return (
+    value !== null &&
+    fastCourseTabs.some((lesson) => lesson.number === value)
+  );
 }
 
 function readSavedProgress(): ProgressSnapshot {
   const snapshot: ProgressSnapshot = {};
-  for (const lesson of courseTabs) {
-    const key = `juc-course.lesson-${lesson.number}.todos.v1`;
+  for (const lesson of fastCourseTabs) {
     try {
-      const value = window.localStorage.getItem(key);
+      const value = window.localStorage.getItem(
+        `juc-course.lesson-${lesson.number}.todos.v2`,
+      );
       const completed = value ? JSON.parse(value) : [];
       snapshot[lesson.number] = {
-        completed: Array.isArray(completed) ? completed.length : 0,
-        total: 8,
+        completed: Array.isArray(completed)
+          ? Math.min(completed.length, TODO_TOTAL)
+          : 0,
+        total: TODO_TOTAL,
       };
     } catch {
-      snapshot[lesson.number] = { completed: 0, total: 8 };
+      snapshot[lesson.number] = { completed: 0, total: TODO_TOTAL };
     }
   }
   return snapshot;
@@ -57,117 +63,94 @@ function CourseDock({
   onSelect: (lesson: CourseTab) => void;
   onToggleTheme: () => void;
 }) {
-  const active = courseTabs.find((lesson) => lesson.number === activeLesson)!;
-  const finishedLessons = courseTabs.filter((lesson) => {
-    const value = progress[lesson.number];
-    return value && value.completed >= value.total;
-  }).length;
-
   return (
-    <section className="course-dock" aria-label="16 课课程切换">
-      <div className="dock-summary">
-        <span>COURSE INDEX</span>
-        <strong>JUC · 16 LESSONS</strong>
-        <small>{finishedLessons} / 16 课完成</small>
+    <section className="fast-course-dock" aria-label="6 课快速面试课程切换">
+      <div className="fast-course-brand">
+        <span>JC</span>
+        <div>
+          <strong>JUC 快速面试课</strong>
+          <small>16 课已合并为 6 课</small>
+        </div>
       </div>
-      <div className="course-tab-rail" role="tablist" aria-label="课程列表">
-        {stageLabels.map((stageLabel, stageIndex) => (
-          <div className="course-stage-group" key={stageLabel}>
-            <span>
-              STAGE {String(stageIndex + 1).padStart(2, "0")} · {stageLabel}
-            </span>
-            <div>
-              {courseTabs
-                .filter((lesson) => lesson.stage === stageIndex + 1)
-                .map((lesson) => {
-                  const lessonProgress = progress[lesson.number];
-                  const isDone =
-                    lessonProgress &&
-                    lessonProgress.completed >= lessonProgress.total;
-                  return (
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-label={`第 ${lesson.number} 课：${lesson.title}`}
-                      aria-selected={activeLesson === lesson.number}
-                      className={`${activeLesson === lesson.number ? "is-active" : ""} ${
-                        isDone ? "is-complete" : ""
-                      }`}
-                      onClick={() => onSelect(lesson)}
-                      key={lesson.number}
-                    >
-                      <span>{isDone ? "✓" : lesson.number}</span>
-                      <strong>{lesson.shortTitle}</strong>
-                      <small>
-                        {lessonProgress?.completed ?? 0}/
-                        {lessonProgress?.total ?? 8}
-                      </small>
-                    </button>
-                  );
-                })}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="dock-active">
-        <span>正在学习</span>
-        <strong>
-          {active.number} · {active.shortTitle}
-        </strong>
-        <small>横向滚动可查看全部课程</small>
-      </div>
+
+      <nav className="fast-course-tabs" aria-label="课程列表">
+        {fastCourseTabs.map((lesson) => {
+          const value = progress[lesson.number] ?? {
+            completed: 0,
+            total: TODO_TOTAL,
+          };
+          const done = value.completed === value.total;
+          return (
+            <button
+              type="button"
+              aria-label={`第 ${lesson.number} 课：${lesson.title}`}
+              aria-current={activeLesson === lesson.number ? "page" : undefined}
+              className={`${activeLesson === lesson.number ? "is-active" : ""} ${
+                done ? "is-done" : ""
+              }`}
+              onClick={() => onSelect(lesson)}
+              key={lesson.number}
+            >
+              <span>{done ? "✓" : lesson.number}</span>
+              <strong>{lesson.shortTitle}</strong>
+              <small>{value.completed}/{value.total}</small>
+            </button>
+          );
+        })}
+      </nav>
+
       <button
         type="button"
-        className="theme-toggle"
+        className="simple-theme-toggle"
         aria-label={`切换为${theme === "light" ? "深色" : "浅色"}模式`}
-        title={`切换为${theme === "light" ? "深色" : "浅色"}模式`}
         onClick={onToggleTheme}
       >
         <span aria-hidden="true">{theme === "light" ? "☀" : "☾"}</span>
-        <span className="theme-toggle-copy">
-          <strong>{theme === "light" ? "浅色" : "深色"}</strong>
-          <small>配色</small>
-        </span>
+        <strong>{theme === "light" ? "浅色" : "深色"}</strong>
       </button>
     </section>
   );
 }
 
 export default function Home() {
-  const [activeLesson, setActiveLesson] = useState("01");
+  const [activeLesson, setActiveLesson] = useState(DEFAULT_LESSON);
   const [progress, setProgress] = useState<ProgressSnapshot>({});
   const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const activeTheme =
-        document.documentElement.dataset.theme === "dark" ? "dark" : "light";
-      setTheme(activeTheme);
+      setTheme(
+        document.documentElement.dataset.theme === "dark" ? "dark" : "light",
+      );
 
       const requested = new URL(window.location.href).searchParams.get("lesson");
-      if (isLessonNumber(requested)) {
-        setActiveLesson(requested);
-        const selected = courseTabs.find(
-          (lesson) => lesson.number === requested,
-        );
-        if (selected) {
-          document.title = `JUC Core Lab · 第 ${selected.number} 课：${selected.title}`;
-        }
-      }
+      const selectedNumber = isLessonNumber(requested)
+        ? requested
+        : DEFAULT_LESSON;
+      setActiveLesson(selectedNumber);
       setProgress(readSavedProgress());
+
+      const selected = fastCourseTabs.find(
+        (lesson) => lesson.number === selectedNumber,
+      );
+      if (selected) {
+        document.title = `第 ${selected.number} 课 · ${selected.title} | JUC 快速面试课`;
+      }
     });
 
     function handleProgress(event: Event) {
-      const custom = event as CustomEvent<{
-        lesson: string;
-        completed: number;
-        total: number;
-      }>;
+      const detail = (
+        event as CustomEvent<{
+          lesson: string;
+          completed: number;
+          total: number;
+        }>
+      ).detail;
       setProgress((current) => ({
         ...current,
-        [custom.detail.lesson]: {
-          completed: custom.detail.completed,
-          total: custom.detail.total,
+        [detail.lesson]: {
+          completed: detail.completed,
+          total: detail.total,
         },
       }));
     }
@@ -186,13 +169,9 @@ export default function Home() {
 
     function handlePopState() {
       const requested = new URL(window.location.href).searchParams.get("lesson");
-      const nextLesson = isLessonNumber(requested) ? requested : "01";
-      const selected = courseTabs.find((lesson) => lesson.number === nextLesson);
-
-      setActiveLesson(nextLesson);
-      document.title = selected
-        ? `第 ${selected.number} 课 · ${selected.shortTitle} | JUC Core Lab`
-        : "JUC Core Lab · 16 课交互学习站";
+      setActiveLesson(
+        isLessonNumber(requested) ? requested : DEFAULT_LESSON,
+      );
     }
 
     window.addEventListener("juc-progress-update", handleProgress);
@@ -207,20 +186,16 @@ export default function Home() {
   }, []);
 
   const detail = useMemo(
-    () => (activeLesson === "01" ? undefined : getLessonDetail(activeLesson)),
+    () => getFastLessonDetail(activeLesson),
     [activeLesson],
   );
 
   function selectLesson(lesson: CourseTab) {
-    if (lesson.number === activeLesson) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
     setActiveLesson(lesson.number);
     const url = new URL(window.location.href);
     url.searchParams.set("lesson", lesson.number);
     window.history.pushState({}, "", url);
-    document.title = `JUC Core Lab · 第 ${lesson.number} 课：${lesson.title}`;
+    document.title = `第 ${lesson.number} 课 · ${lesson.title} | JUC 快速面试课`;
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
@@ -231,7 +206,7 @@ export default function Home() {
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
     } catch {
-      // 浏览器禁用本地存储时，主题仍在当前页面会话内生效。
+      // 本地存储不可用时，当前页面仍可切换配色。
     }
     setTheme(nextTheme);
   }
@@ -245,11 +220,7 @@ export default function Home() {
         onSelect={selectLesson}
         onToggleTheme={toggleTheme}
       />
-      {activeLesson === "01" ? (
-        <LessonOne />
-      ) : detail ? (
-        <LessonWorkspace lesson={detail} key={detail.number} />
-      ) : null}
+      {detail ? <LessonWorkspace lesson={detail} key={detail.number} /> : null}
     </>
   );
 }
