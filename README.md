@@ -36,6 +36,18 @@
 
 网页源码位于 [`web/`](web/)，源码片段由 Java 文件自动生成并通过测试校验一致性。
 
+## 个人学习档案
+
+课程讲义描述“应该学什么”，个人学习档案记录“实际学会了什么”：
+
+- [打开 JUC 学习档案索引](docs/learning-journal/README.md)
+- [第一课学习档案](docs/learning-journal/lesson-01.md)
+- 每课记录学习路径、Todo、实验结果、代码练习、有价值问答和课后复盘。
+- 讨论中能够修正理解、解释边界、指导生产实践或用于面试的问题，会追加到对应课程档案。
+- 后续课程开始时使用[课程档案模板](docs/learning-journal/LESSON_TEMPLATE.md)创建该课记录。
+
+网页进度保存在浏览器中，用于即时反馈；学习档案通过 Git 保存，用于长期回顾和跟踪认知变化。
+
 ## 环境
 
 - JDK 21
@@ -126,6 +138,7 @@ java -cp target/classes \
 ```text
 .
 ├── docs/lesson-01 ... lesson-16   # 讲义、练习、面试复盘
+├── docs/learning-journal/          # 个人学习过程、问答与课后复盘
 ├── src/main/java/.../lesson01...  # 可运行代码与练习骨架
 ├── src/test/java/.../lesson01...  # 行为、边界和练习测试
 ├── benchmarks/                    # JMH 独立工程
