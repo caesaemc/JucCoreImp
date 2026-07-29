@@ -23,6 +23,19 @@
 
 完整设计见 [COURSE_PLAN.md](COURSE_PLAN.md)。
 
+## 交互式学习网页
+
+第一课已经提供可交互学习实验室：
+
+- [打开 JUC Core Lab 第一课](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site)
+- 逐步推演确定性丢失更新。
+- 查看线程本地数据、共享堆数据及写回流向。
+- 对比真实运行中的并发计数分布。
+- 联动仓库源码行号和 GitHub 完整文件。
+- 使用浏览器本地 TODO 逐项记录学习进度。
+
+网页源码位于 [`web/`](web/)，后续课程会沿用同一套学习框架逐课扩展。
+
 ## 环境
 
 - JDK 21
@@ -50,7 +63,7 @@ java -cp target/classes com.caesaemc.juc.lesson16.CapstoneApplication
 
 | 课次 | 主题 | 学习入口 |
 |---|---|---|
-| 01 | 并发问题与 JMM | [讲义](docs/lesson-01/README.md) · [练习](docs/lesson-01/EXERCISES.md) · [面试](docs/lesson-01/INTERVIEW.md) |
+| 01 | 并发问题与 JMM | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site) · [讲义](docs/lesson-01/README.md) · [练习](docs/lesson-01/EXERCISES.md) · [面试](docs/lesson-01/INTERVIEW.md) |
 | 02 | volatile、synchronized、安全发布 | [讲义](docs/lesson-02/README.md) · [练习](docs/lesson-02/EXERCISES.md) · [面试](docs/lesson-02/INTERVIEW.md) |
 | 03 | 线程、中断、取消、ThreadLocal | [讲义](docs/lesson-03/README.md) · [练习](docs/lesson-03/EXERCISES.md) · [面试](docs/lesson-03/INTERVIEW.md) |
 | 04 | CAS、ABA、原子类、LongAdder | [讲义](docs/lesson-04/README.md) · [练习](docs/lesson-04/EXERCISES.md) · [面试](docs/lesson-04/INTERVIEW.md) |
@@ -117,6 +130,7 @@ java -cp target/classes \
 ├── src/test/java/.../lesson01...  # 行为、边界和练习测试
 ├── benchmarks/                    # JMH 独立工程
 ├── jcstress/                      # jcstress 独立工程
+├── web/                           # 交互式课程网页
 ├── COURSE_PLAN.md
 └── pom.xml
 ```

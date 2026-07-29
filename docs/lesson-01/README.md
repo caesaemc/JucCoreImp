@@ -1,5 +1,11 @@
 # 第 01 课：并发问题与 Java 内存模型
 
+## 交互式学习入口
+
+[打开第一课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site)
+
+网页将本课的 TODO、丢失更新时序、线程与共享数据分布、真实运行结果、happens-before 数据流和源码行号放在同一张学习地图中。TODO 勾选状态保存在当前浏览器。
+
 ## 1. 本课目标
 
 完成本课后，你应该能够：
