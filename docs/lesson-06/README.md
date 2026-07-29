@@ -1,5 +1,11 @@
 # 第 06 课：同步工具与并发故障
 
+## 交互式学习入口
+
+[打开第 06 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=06)
+
+网页包含本课 TODO、资源许可完整生命周期、同步器数据分布、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 1. 按生命周期选择 CountDownLatch、CyclicBarrier、Semaphore。

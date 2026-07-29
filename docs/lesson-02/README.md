@@ -1,5 +1,11 @@
 # 第 02 课：volatile、synchronized 与安全发布
 
+## 交互式学习入口
+
+[打开第 02 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=02)
+
+网页包含本课 TODO、安全发布状态流、数据所有权与流向、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 完成本课后，你应该能够：

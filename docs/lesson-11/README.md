@@ -1,5 +1,11 @@
 # 第 11 课：CompletableFuture 异步编排
 
+## 交互式学习入口
+
+[打开第 11 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=11)
+
+网页包含本课 TODO、完成图扇出与汇合流程、Stage/Outcome 数据分布、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 1. 把 CompletableFuture 理解为完成图而非语法糖。

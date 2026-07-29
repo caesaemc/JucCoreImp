@@ -1,5 +1,11 @@
 # 第 14 课：并发设计模式与可靠性
 
+## 交互式学习入口
+
+[打开第 14 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=14)
+
+网页包含本课 TODO、Memoizer/Deadline/Bulkhead 组合流程、可靠性数据分布、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 1. 从“共享状态、所有权、生命周期”三个维度设计并发组件。

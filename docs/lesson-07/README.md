@@ -1,5 +1,11 @@
 # 第 07 课：ConcurrentHashMap 与并发集合
 
+## 交互式学习入口
+
+[打开第 07 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=07)
+
+网页包含本课 TODO、复合操作竞态与原子加载流程、Map 数据分布、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 1. 理解单个线程安全方法不等于复合操作原子。

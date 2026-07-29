@@ -1,5 +1,11 @@
 # 第 09 课：ThreadPoolExecutor 原理
 
+## 交互式学习入口
+
+[打开第 09 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=09)
+
+网页包含本课 TODO、execute 四路径推演、Worker/队列/ctl 数据分布、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 1. 完整讲解 `execute` 的四条路径。

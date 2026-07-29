@@ -1,5 +1,11 @@
 # 第 04 课：CAS、原子类与高竞争计数
 
+## 交互式学习入口
+
+[打开第 04 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=04)
+
+网页包含本课 TODO、CAS 重试状态流、共享值与局部候选数据分布、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 1. 理解 CAS 的预期值、更新值和成功条件。

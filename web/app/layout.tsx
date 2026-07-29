@@ -11,14 +11,14 @@ export async function generateMetadata(): Promise<Metadata> {
     ?? (host.startsWith("localhost") ? "http" : "https");
   const origin = `${protocol}://${host}`;
   const description =
-    "把并发问题、数据流、happens-before 与真实 Java 源码放在同一张可交互学习地图中。";
+    "16 课 Java JUC 交互学习站：逐课推演总体流程、数据分布、数据流向，并联动真实源码、练习和面试验收。";
 
   return {
-    title: "JUC Core Lab · 第一课：Java 内存模型",
+    title: "JUC Core Lab · 16 课交互学习站",
     description,
     metadataBase: new URL(origin),
     openGraph: {
-      title: "JUC Core Lab · 第一课：Java 内存模型",
+      title: "JUC Core Lab · 16 课交互学习站",
       description,
       type: "website",
       locale: "zh_CN",
@@ -26,15 +26,15 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [
         {
           url: `${origin}/og.png`,
-          width: 1733,
-          height: 907,
-          alt: "JUC Core Lab 第一课：两个线程读取 0 并写回共享值 1",
+          width: 1731,
+          height: 909,
+          alt: "JUC Core Lab：16 课 Java 并发系统交互学习地图",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "JUC Core Lab · 第一课：Java 内存模型",
+      title: "JUC Core Lab · 16 课交互学习站",
       description,
       images: [`${origin}/og.png`],
     },

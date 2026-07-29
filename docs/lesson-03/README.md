@@ -1,5 +1,11 @@
 # 第 03 课：线程生命周期、中断与取消
 
+## 交互式学习入口
+
+[打开第 03 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=03)
+
+网页包含本课 TODO、两阶段终止状态流、线程控制数据分布、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 1. 理解 Java 的六种线程状态及其含义。

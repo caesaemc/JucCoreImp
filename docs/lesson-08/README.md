@@ -1,5 +1,11 @@
 # 第 08 课：并发队列与生产消费
 
+## 交互式学习入口
+
+[打开第 08 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=08)
+
+网页包含本课 TODO、有界生产消费状态流、消息与容量数据分布、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 1. 区分非阻塞队列和 BlockingQueue。

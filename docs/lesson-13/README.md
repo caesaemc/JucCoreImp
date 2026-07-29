@@ -1,5 +1,11 @@
 # 第 13 课：虚拟线程与结构化并发
 
+## 交互式学习入口
+
+[打开第 13 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=13)
+
+网页包含本课 TODO、虚拟线程与资源许可流程、任务/载体/资源数据分布、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 1. 理解虚拟线程、平台线程和 carrier 的关系。

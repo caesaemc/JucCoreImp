@@ -25,16 +25,16 @@
 
 ## 交互式学习网页
 
-第一课已经提供可交互学习实验室：
+16 课已经整合进同一个可交互学习站：
 
-- [打开 JUC Core Lab 第一课](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site)
-- 逐步推演确定性丢失更新。
-- 查看线程本地数据、共享堆数据及写回流向。
-- 对比真实运行中的并发计数分布。
-- 联动仓库源码行号和 GitHub 完整文件。
-- 使用浏览器本地 TODO 逐项记录学习进度。
+- [打开 JUC Core Lab 课程总览](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site)
+- 顶部 Tab 在 16 课间切换，也可用 `?lesson=02`～`?lesson=16` 直达。
+- 每课都有 8 项本地 TODO、核心模型、六步状态推演、数据分布和数据流向。
+- 每课联动至少三份仓库真实源码，保留文件名、行号与推理高亮。
+- 每课包含运行命令、动手练习、测试验收和五道面试口述题。
+- 各课进度独立保存在当前浏览器，完成整课后课程 Tab 自动显示勾选。
 
-网页源码位于 [`web/`](web/)，后续课程会沿用同一套学习框架逐课扩展。
+网页源码位于 [`web/`](web/)，源码片段由 Java 文件自动生成并通过测试校验一致性。
 
 ## 环境
 
@@ -64,21 +64,21 @@ java -cp target/classes com.caesaemc.juc.lesson16.CapstoneApplication
 | 课次 | 主题 | 学习入口 |
 |---|---|---|
 | 01 | 并发问题与 JMM | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site) · [讲义](docs/lesson-01/README.md) · [练习](docs/lesson-01/EXERCISES.md) · [面试](docs/lesson-01/INTERVIEW.md) |
-| 02 | volatile、synchronized、安全发布 | [讲义](docs/lesson-02/README.md) · [练习](docs/lesson-02/EXERCISES.md) · [面试](docs/lesson-02/INTERVIEW.md) |
-| 03 | 线程、中断、取消、ThreadLocal | [讲义](docs/lesson-03/README.md) · [练习](docs/lesson-03/EXERCISES.md) · [面试](docs/lesson-03/INTERVIEW.md) |
-| 04 | CAS、ABA、原子类、LongAdder | [讲义](docs/lesson-04/README.md) · [练习](docs/lesson-04/EXERCISES.md) · [面试](docs/lesson-04/INTERVIEW.md) |
-| 05 | AQS、ReentrantLock、Condition | [讲义](docs/lesson-05/README.md) · [练习](docs/lesson-05/EXERCISES.md) · [面试](docs/lesson-05/INTERVIEW.md) |
-| 06 | 同步器、读写锁与并发故障 | [讲义](docs/lesson-06/README.md) · [练习](docs/lesson-06/EXERCISES.md) · [面试](docs/lesson-06/INTERVIEW.md) |
-| 07 | ConcurrentHashMap 与并发集合 | [讲义](docs/lesson-07/README.md) · [练习](docs/lesson-07/EXERCISES.md) · [面试](docs/lesson-07/INTERVIEW.md) |
-| 08 | 并发队列、生产消费、背压 | [讲义](docs/lesson-08/README.md) · [练习](docs/lesson-08/EXERCISES.md) · [面试](docs/lesson-08/INTERVIEW.md) |
-| 09 | ThreadPoolExecutor 原理 | [讲义](docs/lesson-09/README.md) · [练习](docs/lesson-09/EXERCISES.md) · [面试](docs/lesson-09/INTERVIEW.md) |
-| 10 | Future、调度、超时与关闭 | [讲义](docs/lesson-10/README.md) · [练习](docs/lesson-10/EXERCISES.md) · [面试](docs/lesson-10/INTERVIEW.md) |
-| 11 | CompletableFuture 异步编排 | [讲义](docs/lesson-11/README.md) · [练习](docs/lesson-11/EXERCISES.md) · [面试](docs/lesson-11/INTERVIEW.md) |
-| 12 | ForkJoin 与任务模型选型 | [讲义](docs/lesson-12/README.md) · [练习](docs/lesson-12/EXERCISES.md) · [面试](docs/lesson-12/INTERVIEW.md) |
-| 13 | 虚拟线程与结构化并发 | [讲义](docs/lesson-13/README.md) · [练习](docs/lesson-13/EXERCISES.md) · [面试](docs/lesson-13/INTERVIEW.md) |
-| 14 | 并发模式、deadline 与可靠性 | [讲义](docs/lesson-14/README.md) · [练习](docs/lesson-14/EXERCISES.md) · [面试](docs/lesson-14/INTERVIEW.md) |
-| 15 | 测试、诊断、JFR、JMH、jcstress | [讲义](docs/lesson-15/README.md) · [练习](docs/lesson-15/EXERCISES.md) · [面试](docs/lesson-15/INTERVIEW.md) |
-| 16 | 高并发多下游聚合服务 | [讲义](docs/lesson-16/README.md) · [练习](docs/lesson-16/EXERCISES.md) · [面试](docs/lesson-16/INTERVIEW.md) |
+| 02 | volatile、synchronized、安全发布 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=02) · [讲义](docs/lesson-02/README.md) · [练习](docs/lesson-02/EXERCISES.md) · [面试](docs/lesson-02/INTERVIEW.md) |
+| 03 | 线程、中断、取消、ThreadLocal | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=03) · [讲义](docs/lesson-03/README.md) · [练习](docs/lesson-03/EXERCISES.md) · [面试](docs/lesson-03/INTERVIEW.md) |
+| 04 | CAS、ABA、原子类、LongAdder | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=04) · [讲义](docs/lesson-04/README.md) · [练习](docs/lesson-04/EXERCISES.md) · [面试](docs/lesson-04/INTERVIEW.md) |
+| 05 | AQS、ReentrantLock、Condition | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=05) · [讲义](docs/lesson-05/README.md) · [练习](docs/lesson-05/EXERCISES.md) · [面试](docs/lesson-05/INTERVIEW.md) |
+| 06 | 同步器、读写锁与并发故障 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=06) · [讲义](docs/lesson-06/README.md) · [练习](docs/lesson-06/EXERCISES.md) · [面试](docs/lesson-06/INTERVIEW.md) |
+| 07 | ConcurrentHashMap 与并发集合 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=07) · [讲义](docs/lesson-07/README.md) · [练习](docs/lesson-07/EXERCISES.md) · [面试](docs/lesson-07/INTERVIEW.md) |
+| 08 | 并发队列、生产消费、背压 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=08) · [讲义](docs/lesson-08/README.md) · [练习](docs/lesson-08/EXERCISES.md) · [面试](docs/lesson-08/INTERVIEW.md) |
+| 09 | ThreadPoolExecutor 原理 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=09) · [讲义](docs/lesson-09/README.md) · [练习](docs/lesson-09/EXERCISES.md) · [面试](docs/lesson-09/INTERVIEW.md) |
+| 10 | Future、调度、超时与关闭 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=10) · [讲义](docs/lesson-10/README.md) · [练习](docs/lesson-10/EXERCISES.md) · [面试](docs/lesson-10/INTERVIEW.md) |
+| 11 | CompletableFuture 异步编排 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=11) · [讲义](docs/lesson-11/README.md) · [练习](docs/lesson-11/EXERCISES.md) · [面试](docs/lesson-11/INTERVIEW.md) |
+| 12 | ForkJoin 与任务模型选型 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=12) · [讲义](docs/lesson-12/README.md) · [练习](docs/lesson-12/EXERCISES.md) · [面试](docs/lesson-12/INTERVIEW.md) |
+| 13 | 虚拟线程与结构化并发 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=13) · [讲义](docs/lesson-13/README.md) · [练习](docs/lesson-13/EXERCISES.md) · [面试](docs/lesson-13/INTERVIEW.md) |
+| 14 | 并发模式、deadline 与可靠性 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=14) · [讲义](docs/lesson-14/README.md) · [练习](docs/lesson-14/EXERCISES.md) · [面试](docs/lesson-14/INTERVIEW.md) |
+| 15 | 测试、诊断、JFR、JMH、jcstress | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=15) · [讲义](docs/lesson-15/README.md) · [练习](docs/lesson-15/EXERCISES.md) · [面试](docs/lesson-15/INTERVIEW.md) |
+| 16 | 高并发多下游聚合服务 | [交互网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=16) · [讲义](docs/lesson-16/README.md) · [练习](docs/lesson-16/EXERCISES.md) · [面试](docs/lesson-16/INTERVIEW.md) |
 
 ## 专项实验
 

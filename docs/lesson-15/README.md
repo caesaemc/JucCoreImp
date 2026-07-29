@@ -1,5 +1,11 @@
 # 第 15 课：并发测试、诊断与性能
 
+## 交互式学习入口
+
+[打开第 15 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=15)
+
+网页包含本课 TODO、确定性测试流程、证据与故障数据分布、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 1. 写出可重复、能失败、有限时的并发测试。

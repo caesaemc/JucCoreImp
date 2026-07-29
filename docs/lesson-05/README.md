@@ -1,5 +1,11 @@
 # 第 05 课：AQS、ReentrantLock 与 Condition
 
+## 交互式学习入口
+
+[打开第 05 课 JUC Core Lab](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=05)
+
+网页包含本课 TODO、同步队列与条件队列迁移、AQS 数据分布、真实源码行号、练习和面试验收。
+
 ## 学习目标
 
 1. 理解 AQS 的 state、模板方法和等待队列。
