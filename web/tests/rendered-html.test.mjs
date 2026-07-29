@@ -60,7 +60,9 @@ test("server-renders the 16-lesson course dock and lesson one", async () => {
     html,
     /<title>JUC Core Lab · 16 课交互学习站<\/title>/i,
   );
+  assert.match(html, /<html[^>]+data-theme="light"/i);
   assert.match(html, /aria-label="16 课课程切换"/);
+  assert.match(html, /aria-label="切换为深色模式"/);
   assert.match(html, /aria-label="第 01 课：并发问题与 Java 内存模型"/);
   assert.match(html, /aria-label="第 16 课：高并发多下游聚合服务"/);
   assert.match(html, /确定性丢失更新推演/);
@@ -156,20 +158,28 @@ test("generated source snippets exactly match the Java repository", async () => 
   }
 });
 
-test("keeps per-lesson local progress and removes starter-only assets", async () => {
-  const [page, lessonOne, workspace, layout, packageJson] = await Promise.all([
-    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/lesson-one.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/lesson-workspace.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../package.json", import.meta.url), "utf8"),
-  ]);
+test("keeps local progress, persists theme, and removes starter assets", async () => {
+  const [page, lessonOne, workspace, layout, styles, packageJson] =
+    await Promise.all([
+      readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+      readFile(new URL("../app/lesson-one.tsx", import.meta.url), "utf8"),
+      readFile(new URL("../app/lesson-workspace.tsx", import.meta.url), "utf8"),
+      readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+      readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+      readFile(new URL("../package.json", import.meta.url), "utf8"),
+    ]);
 
   assert.match(page, /searchParams\.set\("lesson"/);
   assert.match(page, /courseTabs/);
   assert.match(lessonOne, /juc-course\.lesson-01\.todos\.v1/);
   assert.match(workspace, /juc-course\.lesson-\$\{lesson\.number\}\.todos\.v1/);
   assert.match(workspace, /juc-progress-update/);
+  assert.match(page, /juc-course\.theme\.v1/);
+  assert.match(page, /document\.documentElement\.dataset\.theme/);
+  assert.match(layout, /data-theme="light"/);
+  assert.match(layout, /window\.localStorage\.getItem\("juc-course\.theme\.v1"\)/);
+  assert.match(styles, /html\[data-theme="light"\]/);
+  assert.match(styles, /\.theme-toggle/);
   assert.match(layout, /lang="zh-CN"/);
   assert.match(packageJson, /generate:sources/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);

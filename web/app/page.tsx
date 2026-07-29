@@ -10,6 +10,10 @@ import {
 import LessonOne from "./lesson-one";
 import LessonWorkspace from "./lesson-workspace";
 
+type Theme = "light" | "dark";
+
+const THEME_STORAGE_KEY = "juc-course.theme.v1";
+
 type ProgressSnapshot = Record<
   string,
   {
@@ -43,11 +47,15 @@ function readSavedProgress(): ProgressSnapshot {
 function CourseDock({
   activeLesson,
   progress,
+  theme,
   onSelect,
+  onToggleTheme,
 }: {
   activeLesson: string;
   progress: ProgressSnapshot;
+  theme: Theme;
   onSelect: (lesson: CourseTab) => void;
+  onToggleTheme: () => void;
 }) {
   const active = courseTabs.find((lesson) => lesson.number === activeLesson)!;
   const finishedLessons = courseTabs.filter((lesson) => {
@@ -108,6 +116,19 @@ function CourseDock({
         </strong>
         <small>横向滚动可查看全部课程</small>
       </div>
+      <button
+        type="button"
+        className="theme-toggle"
+        aria-label={`切换为${theme === "light" ? "深色" : "浅色"}模式`}
+        title={`切换为${theme === "light" ? "深色" : "浅色"}模式`}
+        onClick={onToggleTheme}
+      >
+        <span aria-hidden="true">{theme === "light" ? "☀" : "☾"}</span>
+        <span className="theme-toggle-copy">
+          <strong>{theme === "light" ? "浅色" : "深色"}</strong>
+          <small>配色</small>
+        </span>
+      </button>
     </section>
   );
 }
@@ -115,9 +136,14 @@ function CourseDock({
 export default function Home() {
   const [activeLesson, setActiveLesson] = useState("01");
   const [progress, setProgress] = useState<ProgressSnapshot>({});
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
+      const activeTheme =
+        document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+      setTheme(activeTheme);
+
       const requested = new URL(window.location.href).searchParams.get("lesson");
       if (isLessonNumber(requested)) {
         setActiveLesson(requested);
@@ -146,8 +172,16 @@ export default function Home() {
       }));
     }
 
-    function handleStorage() {
+    function handleStorage(event: StorageEvent) {
       setProgress(readSavedProgress());
+      if (
+        event.key === THEME_STORAGE_KEY &&
+        (event.newValue === "light" || event.newValue === "dark")
+      ) {
+        document.documentElement.dataset.theme = event.newValue;
+        document.documentElement.style.colorScheme = event.newValue;
+        setTheme(event.newValue);
+      }
     }
 
     function handlePopState() {
@@ -190,12 +224,26 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
+  function toggleTheme() {
+    const nextTheme: Theme = theme === "light" ? "dark" : "light";
+    document.documentElement.dataset.theme = nextTheme;
+    document.documentElement.style.colorScheme = nextTheme;
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch {
+      // 浏览器禁用本地存储时，主题仍在当前页面会话内生效。
+    }
+    setTheme(nextTheme);
+  }
+
   return (
     <>
       <CourseDock
         activeLesson={activeLesson}
         progress={progress}
+        theme={theme}
         onSelect={selectLesson}
+        onToggleTheme={toggleTheme}
       />
       {activeLesson === "01" ? (
         <LessonOne />

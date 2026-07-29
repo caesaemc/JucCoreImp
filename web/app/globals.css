@@ -18,6 +18,17 @@
   --danger: #ff7474;
   --danger-dark: #401d22;
   --white: #fffdf8;
+  --theme-canvas: #090d11;
+  --theme-surface: #10161d;
+  --theme-surface-soft: #171e27;
+  --theme-surface-deep: #0c1117;
+  --theme-surface-deeper: #070b0f;
+  --theme-heading: #fffdf8;
+  --theme-body: #f3efe6;
+  --theme-muted: #7f8a94;
+  --theme-grid-line: rgba(255, 255, 255, 0.025);
+  --theme-header: rgba(9, 13, 17, 0.94);
+  --theme-shadow: rgba(0, 0, 0, 0.3);
   --font-sans: "Inter", "SF Pro Display", "PingFang SC", "Microsoft YaHei",
     sans-serif;
   --font-serif: "Iowan Old Style", "Noto Serif SC", "Songti SC", serif;
@@ -30,13 +41,14 @@
 
 html {
   scroll-behavior: smooth;
-  background: var(--ink);
+  background: var(--theme-canvas);
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--theme-canvas);
+  color: var(--theme-body);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.6;
@@ -76,8 +88,8 @@ main {
   min-height: 100vh;
   overflow: hidden;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(var(--theme-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--theme-grid-line) 1px, transparent 1px);
   background-size: 44px 44px;
 }
 
@@ -91,7 +103,7 @@ main {
   min-height: 76px;
   padding: 0 4vw;
   border-bottom: 1px solid var(--line);
-  background: rgba(9, 13, 17, 0.94);
+  background: var(--theme-header);
   backdrop-filter: blur(16px);
 }
 
@@ -2257,7 +2269,7 @@ main {
   z-index: 100;
   top: 0;
   display: grid;
-  grid-template-columns: 180px minmax(0, 1fr) 180px;
+  grid-template-columns: 180px minmax(0, 1fr) 180px 78px;
   gap: 18px;
   align-items: stretch;
   height: var(--course-dock-height);
@@ -2265,8 +2277,8 @@ main {
   border-bottom: 1px solid #384652;
   background:
     linear-gradient(90deg, rgba(88, 217, 246, 0.07), transparent 22%),
-    #070b0f;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+    var(--theme-surface-deeper);
+  box-shadow: 0 18px 40px var(--theme-shadow);
 }
 
 .dock-summary,
@@ -2277,7 +2289,7 @@ main {
   justify-content: center;
   padding: 0 14px;
   border: 1px solid var(--line);
-  background: #0d1319;
+  background: var(--theme-surface-deep);
 }
 
 .dock-summary > span,
@@ -2347,7 +2359,7 @@ main {
   min-height: 64px;
   padding: 8px 9px;
   border: 1px solid var(--line);
-  background: #10161c;
+  background: var(--theme-surface);
   color: #87919a;
   cursor: pointer;
   text-align: left;
@@ -2412,6 +2424,50 @@ main {
   border-color: var(--green);
   background: var(--green);
   color: var(--ink);
+}
+
+.theme-toggle {
+  display: grid;
+  min-width: 0;
+  grid-template-rows: auto auto;
+  place-items: center;
+  padding: 8px 7px;
+  border: 1px solid var(--line);
+  background: var(--theme-surface-deep);
+  color: var(--theme-heading);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.theme-toggle:hover {
+  border-color: var(--cyan);
+  transform: translateY(-1px);
+}
+
+.theme-toggle > span:first-child {
+  color: var(--cyan);
+  font-size: 21px;
+  line-height: 1;
+}
+
+.theme-toggle-copy {
+  display: grid;
+  margin-top: 5px;
+  text-align: center;
+}
+
+.theme-toggle-copy strong {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.theme-toggle-copy small {
+  color: var(--theme-muted);
+  font-size: 6px;
 }
 
 .lesson-page {
@@ -3230,9 +3286,314 @@ main {
   color: var(--lesson-accent);
 }
 
+html[data-theme="light"] {
+  --ink-raised: #fffdf9;
+  --ink-soft: #ebe7df;
+  --line: #cbd2d5;
+  --line-bright: #94a2aa;
+  --paper-muted: #5f6c76;
+  --cyan: #087993;
+  --cyan-dark: #d9edf2;
+  --amber: #9b5900;
+  --amber-dark: #f5e6cf;
+  --green: #237a46;
+  --green-dark: #deefe3;
+  --danger: #b94040;
+  --danger-dark: #f6dfdf;
+  --theme-canvas: #f4f1ea;
+  --theme-surface: #fffdf9;
+  --theme-surface-soft: #ebe7df;
+  --theme-surface-deep: #f8f6f1;
+  --theme-surface-deeper: #e8edf0;
+  --theme-heading: #17232d;
+  --theme-body: #2d3a44;
+  --theme-muted: #62717c;
+  --theme-grid-line: rgba(31, 64, 75, 0.065);
+  --theme-header: rgba(255, 253, 249, 0.94);
+  --theme-shadow: rgba(37, 51, 60, 0.13);
+  color-scheme: light;
+}
+
+html[data-theme="light"] .course-dock {
+  border-bottom-color: var(--line-bright);
+  background:
+    linear-gradient(90deg, rgba(8, 121, 147, 0.09), transparent 24%),
+    var(--theme-surface-deeper);
+}
+
+html[data-theme="light"] .dock-summary strong,
+html[data-theme="light"] .dock-active strong,
+html[data-theme="light"] .course-stage-group button:hover,
+html[data-theme="light"] .course-stage-group button.is-active {
+  color: var(--theme-heading);
+}
+
+html[data-theme="light"] .dock-summary small,
+html[data-theme="light"] .dock-active small,
+html[data-theme="light"] .course-stage-group > span,
+html[data-theme="light"] .course-stage-group button,
+html[data-theme="light"] .course-stage-group button > small {
+  color: var(--theme-muted);
+}
+
+html[data-theme="light"] .course-stage-group button > span {
+  border-color: var(--line-bright);
+}
+
+html[data-theme="light"] .site-header {
+  box-shadow: 0 10px 30px rgba(37, 51, 60, 0.07);
+}
+
+html[data-theme="light"] :is(
+  .top-nav a:hover,
+  .hero h1,
+  .hero-facts strong,
+  .hero-thread strong,
+  .memory-core strong,
+  .section-heading h2,
+  .todo-heading h2,
+  .todo-copy a,
+  .concept-card h3,
+  .concept-card > strong,
+  .jmm-definition strong,
+  .hb-node strong,
+  .hb-rules strong,
+  .interview-list button strong,
+  .lesson-finish h2,
+  .finish-progress strong,
+  .site-footer strong,
+  .lesson-hero h1,
+  .generic-concept h3,
+  .lesson-thesis p,
+  .blueprint-route strong,
+  .blueprint-outcome p,
+  .state-node strong,
+  .flow-explanation h3,
+  .flow-timeline strong,
+  .data-zone-grid header strong,
+  .zone-value,
+  .routing-row > strong
+) {
+  color: var(--theme-heading);
+}
+
+html[data-theme="light"] :is(
+  .hero-lead,
+  .concept-card > p,
+  .jmm-definition p,
+  .hb-rules p,
+  .interview-answer p,
+  .generic-concept > p,
+  .lesson-thesis p,
+  .flow-explanation p,
+  .data-zone-grid dd,
+  .data-zone-grid article > footer,
+  .routing-row > div
+) {
+  color: var(--theme-body);
+}
+
+html[data-theme="light"] :is(
+  .concept-top small,
+  .concept-card footer,
+  .todo-copy small,
+  .todo-footer span,
+  .hb-node small,
+  .hb-node span,
+  .hb-lane-title span,
+  .interview-list article > button > span,
+  .interview-answer span,
+  .site-footer span,
+  .site-footer p,
+  .site-footer > a,
+  .lesson-stage-name,
+  .blueprint-header b,
+  .blueprint-route small,
+  .lesson-doc-links a,
+  .generic-concept footer,
+  .state-node small,
+  .state-node span,
+  .state-operation span,
+  .flow-explanation small,
+  .flow-explanation > b,
+  .flow-timeline button,
+  .data-zone-grid header small,
+  .data-zone-grid dt,
+  .routing-header b,
+  .routing-row small,
+  .routing-row > em
+) {
+  color: var(--theme-muted);
+}
+
+html[data-theme="light"] .button.primary,
+html[data-theme="light"] .lesson-page .button.primary {
+  color: #fff;
+}
+
+html[data-theme="light"] .button.secondary {
+  color: var(--theme-heading);
+}
+
+html[data-theme="light"] .button.primary:hover {
+  color: var(--ink);
+}
+
+html[data-theme="light"] .hero-system,
+html[data-theme="light"] .concept-card,
+html[data-theme="light"] .hb-node,
+html[data-theme="light"] .hb-rules article,
+html[data-theme="light"] .interview-list article,
+html[data-theme="light"] .generic-concept {
+  box-shadow: 0 12px 32px rgba(37, 51, 60, 0.06);
+}
+
+html[data-theme="light"] .phase-card:hover {
+  background: var(--theme-surface-soft);
+  color: var(--theme-heading);
+}
+
+html[data-theme="light"] .phase-card:hover p {
+  color: var(--theme-body);
+}
+
+html[data-theme="light"] :is(
+  .learning-sidebar,
+  .lab-section,
+  .hb-flow,
+  .source-section,
+  .generic-concepts,
+  .generic-flow,
+  .data-system
+) {
+  background: var(--theme-surface-deep);
+}
+
+html[data-theme="light"] :is(
+  .jmm-definition,
+  .lesson-thesis,
+  .flow-lab,
+  .state-node,
+  .state-operation,
+  .data-zone-grid > article,
+  .routing-header,
+  .routing-row,
+  .exercise-command
+) {
+  background: var(--theme-surface);
+}
+
+html[data-theme="light"] .lesson-blueprint {
+  background:
+    linear-gradient(var(--theme-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--theme-grid-line) 1px, transparent 1px),
+    var(--theme-surface);
+  box-shadow: 14px 14px 0 var(--lesson-accent-dark);
+}
+
+html[data-theme="light"] .blueprint-route {
+  background: rgba(255, 253, 249, 0.9);
+}
+
+html[data-theme="light"] .state-flow-stage {
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--lesson-accent) 10%, transparent), transparent 30%),
+    linear-gradient(var(--theme-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--theme-grid-line) 1px, transparent 1px);
+  background-size:
+    auto,
+    32px 32px,
+    32px 32px;
+}
+
+html[data-theme="light"] .flow-timeline button {
+  background: var(--theme-surface-deep);
+}
+
+html[data-theme="light"] .flow-timeline button.is-reached {
+  background: var(--lesson-accent-dark);
+  color: var(--theme-heading);
+}
+
+html[data-theme="light"] .zone-value {
+  background: var(--theme-surface-deep);
+}
+
+html[data-theme="light"] .routing-row > em {
+  background: var(--lesson-accent-dark);
+}
+
+html[data-theme="light"] .source-tabs {
+  background: #f0eee8;
+}
+
+html[data-theme="light"] .source-tabs button {
+  background: transparent;
+}
+
+html[data-theme="light"] .source-tabs button span {
+  color: var(--theme-heading);
+}
+
+html[data-theme="light"] .source-tabs button small {
+  color: var(--theme-muted);
+}
+
+html[data-theme="light"] .source-tabs button.is-active {
+  background: var(--cyan-dark);
+}
+
+html[data-theme="light"] .lesson-page .source-tabs button.is-active {
+  background: var(--lesson-accent-dark);
+}
+
+html[data-theme="light"] .lab-console,
+html[data-theme="light"] .source-browser,
+html[data-theme="light"] .terminal-card,
+html[data-theme="light"] .code-window,
+html[data-theme="light"] .source-view > header {
+  --ink-raised: #10161d;
+  --ink-soft: #171e27;
+  --line: #2a3541;
+  --line-bright: #43515f;
+  --paper-muted: #aaa79f;
+  color: var(--paper);
+  color-scheme: dark;
+}
+
+html[data-theme="light"] .lab-console :is(
+  .play-controls button,
+  .step-pills button,
+  .thread-lane,
+  .shared-memory,
+  .step-explanation
+) {
+  color: var(--paper);
+}
+
+html[data-theme="light"] .mode-switch button.is-active {
+  background: var(--theme-heading);
+  color: var(--paper);
+}
+
+html[data-theme="light"] .lesson-finish {
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.65);
+}
+
+html[data-theme="light"] .site-footer {
+  background: #e4e8e9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle,
+  .course-stage-group button {
+    transition: none;
+  }
+}
+
 @media (max-width: 1180px) {
   .course-dock {
-    grid-template-columns: 150px minmax(0, 1fr);
+    grid-template-columns: 150px minmax(0, 1fr) 70px;
   }
 
   .dock-active {
@@ -3331,7 +3692,7 @@ main {
 
 @media (max-width: 920px) {
   .course-dock {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 64px;
   }
 
   .dock-summary {
@@ -3489,6 +3850,17 @@ main {
   .course-dock {
     gap: 0;
     padding: 8px 12px;
+  }
+
+  .theme-toggle {
+    width: 46px;
+    min-width: 46px;
+    margin-left: 8px;
+    padding: 6px;
+  }
+
+  .theme-toggle-copy {
+    display: none;
   }
 
   .course-stage-group {
