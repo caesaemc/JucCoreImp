@@ -36,7 +36,7 @@ function between(value, startMarker, endMarker) {
   return value.slice(start, end);
 }
 
-test("默认打开精简后的第 02 课", async () => {
+test("默认打开带运行时内存动画的第 01 课", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
@@ -47,13 +47,40 @@ test("默认打开精简后的第 02 课", async () => {
   assert.match(html, /aria-label="6 课快速面试课程切换"/);
   assert.match(html, /aria-label="第 01 课：共享数据与 Java 内存模型"/);
   assert.match(html, /aria-label="第 06 课：可靠性、排障与综合项目"/);
-  assert.match(html, /volatile、synchronized 与安全发布/);
-  assert.match(html, /JVM \/ 程序内存（简化图）/);
-  assert.match(html, /ConfigRepository 对象/);
+  assert.match(html, /共享数据与 Java 内存模型/);
+  assert.match(html, /JVM 进程内存（教学简化）/);
+  assert.match(html, /类元数据区 \/ Metaspace/);
+  assert.match(html, /UnsafeCounter @C1/);
+  assert.match(html, /线程 A 的栈/);
+  assert.match(html, /操作数栈 · 读到的旧值/);
+  assert.match(html, /丢失更新的一种真实交错 · STEP/);
+  assert.match(html, />播放</);
   assert.match(html, /一页讲义/);
   assert.match(html, /只做这 5 件事/);
-  assert.match(html, /data-testid="learning-checklist-02"/);
+  assert.match(html, /data-testid="learning-checklist-01"/);
   assert.doesNotMatch(html, /自动播放|DATA ROUTING TABLE|16 LESSONS/);
+});
+
+test("第一课动画完整覆盖创建、读取、计算、写回和覆盖", async () => {
+  const memoryLab = await readFile(
+    new URL("../app/lesson-one-memory-lab.tsx", import.meta.url),
+    "utf8",
+  );
+  const steps = between(
+    memoryLab,
+    "const MEMORY_STEPS",
+    "function fieldClass",
+  );
+
+  assert.equal(occurrences(steps, /\n\s+short: "/g), 7);
+  assert.match(steps, /short: "创建对象"/);
+  assert.match(steps, /short: "A 读取"/);
+  assert.match(steps, /short: "B 读取"/);
+  assert.match(steps, /short: "A 写回"/);
+  assert.match(steps, /short: "B 覆盖"/);
+  assert.match(memoryLab, /data-packet/);
+  assert.match(memoryLab, /正确结果/);
+  assert.match(memoryLab, /丢失更新/);
 });
 
 test("学习入口只有 6 课，并明确记录原 16 课合并关系", async () => {
@@ -134,6 +161,7 @@ test("每课只有 5 项 Todo，进度和主题保存在本地", async () => {
   assert.match(workspace, /juc-progress-update/);
   assert.match(page, /juc-course\.theme\.v1/);
   assert.match(layout, /data-theme="light"/);
+  assert.match(layout, /og-memory-lab\.png/);
   assert.match(styles, /html\[data-theme="dark"\]/);
   assert.match(styles, /\.simple-todo/);
   assert.match(styles, /\.simple-guide/);

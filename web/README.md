@@ -4,7 +4,7 @@
 
 - 顶部：6 课切换和浅色/深色按钮。
 - 左侧固定：每课 5 项 Todo。
-- 中间：内存大框、对象小框、数据箭头、真实源码、一个练习、三道题。
+- 中间：可逐步播放的 JVM 内存图、真实源码、一个练习、三道题。
 - 右侧固定：一页讲义。
 
 课程合并：
@@ -46,6 +46,7 @@ npm run generate:sources
 app/page.tsx                       6 课切换、进度和配色
 app/fast-course-data.ts            6 课精简讲义与合并关系
 app/lesson-workspace.tsx           统一三栏学习界面
+app/lesson-one-memory-lab.tsx      第一课 JVM 内存与丢失更新动画
 app/lesson-one-simple-data.ts      第一课简明数据
 app/course-data.ts                 原 16 课深入内容
 app/source-snippets.generated.ts   从 Java 源码生成的片段

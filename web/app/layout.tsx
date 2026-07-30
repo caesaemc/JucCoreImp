@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
     ?? (host.startsWith("localhost") ? "http" : "https");
   const origin = `${protocol}://${host}`;
   const description =
-    "6 课 Java JUC 快速面试学习站：一份讲义、5 项 Todo、简明内存图、真实源码和 3 道面试题。";
+    "6 课 Java JUC 快速面试学习站：可播放的 JVM 内存更新图、真实源码、练习和面试题。";
 
   return {
     title: "JUC 快速面试课 · 6 课精简版",
@@ -35,11 +35,20 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       locale: "zh_CN",
       url: origin,
+      images: [
+        {
+          url: `${origin}/og-memory-lab.png`,
+          width: 1731,
+          height: 909,
+          alt: "JUC Core Lab：线程栈、堆对象与数据更新拓扑图",
+        },
+      ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: "JUC 快速面试课 · 6 课精简版",
       description,
+      images: [`${origin}/og-memory-lab.png`],
     },
   };
 }

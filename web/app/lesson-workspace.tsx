@@ -5,6 +5,7 @@ import {
   getFastLessonSources,
   type FastLesson,
 } from "./fast-course-data";
+import LessonOneMemoryLab from "./lesson-one-memory-lab";
 
 type TodoItem = {
   id: string;
@@ -227,49 +228,61 @@ export default function LessonWorkspace({ lesson }: { lesson: FastLesson }) {
             <div className="simple-section-title">
               <span>01</span>
               <div>
-                <h2>先看数据放在哪里</h2>
-                <p>大框代表程序内存，小框代表对象或线程自己的区域，箭头就是数据流向。</p>
+                <h2>
+                  {lesson.number === "01"
+                    ? "运行一次 value++，看数据怎样变化"
+                    : "先看数据放在哪里"}
+                </h2>
+                <p>
+                  {lesson.number === "01"
+                    ? "类元数据只保存结构，value 存在堆对象中；线程栈只暂存本次计算用到的旧值和新值。"
+                    : "大框代表程序内存，小框代表对象或线程自己的区域，箭头就是数据流向。"}
+                </p>
               </div>
             </div>
 
-            <div className="memory-region">
-              <header>
-                <div>
-                  <strong>JVM / 程序内存（简化图）</strong>
-                  <small>这是一张学习图，不是 JVM 规范中的精确内存布局。</small>
+            {lesson.number === "01" ? (
+              <LessonOneMemoryLab />
+            ) : (
+              <div className="memory-region">
+                <header>
+                  <div>
+                    <strong>JVM / 程序内存（简化图）</strong>
+                    <small>这是一张学习图，不是 JVM 规范中的精确内存布局。</small>
+                  </div>
+                  <span>数据从左往右走</span>
+                </header>
+                <div className="memory-flow">
+                  {lesson.zones.map((item, index) => {
+                    const nextRoute = lesson.routes[index];
+                    return (
+                      <Fragment key={`${item.code}-${item.name}-${index}`}>
+                        <article className="memory-box">
+                          <span>{item.kind}</span>
+                          <div className="memory-object">
+                            <small>对象 / 区域</small>
+                            <strong>{item.name}</strong>
+                          </div>
+                          <code>{item.value}</code>
+                          <p>{item.rule}</p>
+                        </article>
+                        {nextRoute && index < lesson.zones.length - 1 ? (
+                          <div className="memory-arrow">
+                            <small>{nextRoute.data}</small>
+                            <b aria-hidden="true">→</b>
+                            <span>{nextRoute.via}</span>
+                          </div>
+                        ) : null}
+                      </Fragment>
+                    );
+                  })}
                 </div>
-                <span>数据从左往右走</span>
-              </header>
-              <div className="memory-flow">
-                {lesson.zones.map((item, index) => {
-                  const nextRoute = lesson.routes[index];
-                  return (
-                    <Fragment key={`${item.code}-${item.name}-${index}`}>
-                      <article className="memory-box">
-                        <span>{item.kind}</span>
-                        <div className="memory-object">
-                          <small>对象 / 区域</small>
-                          <strong>{item.name}</strong>
-                        </div>
-                        <code>{item.value}</code>
-                        <p>{item.rule}</p>
-                      </article>
-                      {nextRoute && index < lesson.zones.length - 1 ? (
-                        <div className="memory-arrow">
-                          <small>{nextRoute.data}</small>
-                          <b aria-hidden="true">→</b>
-                          <span>{nextRoute.via}</span>
-                        </div>
-                      ) : null}
-                    </Fragment>
-                  );
-                })}
+                <div className="memory-result">
+                  <span>这张图说明</span>
+                  <strong>{lesson.routes.at(-1)?.guarantee}</strong>
+                </div>
               </div>
-              <div className="memory-result">
-                <span>这张图说明</span>
-                <strong>{lesson.routes.at(-1)?.guarantee}</strong>
-              </div>
-            </div>
+            )}
           </section>
 
           <section className="simple-panel source-panel" id="source-code">

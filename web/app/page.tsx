@@ -18,7 +18,7 @@ type ProgressSnapshot = Record<
   }
 >;
 
-const DEFAULT_LESSON = "02";
+const DEFAULT_LESSON = "01";
 const TODO_TOTAL = 5;
 const THEME_STORAGE_KEY = "juc-course.theme.v1";
 
