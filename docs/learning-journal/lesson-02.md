@@ -30,6 +30,14 @@
 多个字段必须是同一版本     → 不可变对象 + volatile 引用
 ```
 
+## 正确学习路径
+
+1. 先回顾第一课：`volatile int value` 不能让 `value++` 变成一步。
+2. 再播放安全发布动画，区分 writer 栈、堆中的 Settings 对象、共享 `current` 和 reader 栈。
+3. 阅读 `SafePublicationDemo`，把构造、volatile 写、volatile 读与字段读取对应到动画。
+4. 阅读 `DclSingleton`，理解第一次检查、锁内第二次检查和 volatile 发布各自作用。
+5. 完成序号练习，用同一把锁保护读取、加一、写回和读取结果。
+
 ## 内存图
 
 ```text

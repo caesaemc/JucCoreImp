@@ -2287,6 +2287,227 @@ html[data-theme="dark"] .runtime-lab {
   font-size: 12px;
 }
 
+.markdown-panel {
+  padding-bottom: clamp(30px, 4vw, 52px);
+}
+
+.lesson-markdown {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 96%, var(--surface-soft));
+}
+
+.markdown-source-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
+}
+
+.markdown-source-bar span,
+.markdown-source-bar strong {
+  display: block;
+}
+
+.markdown-source-bar span {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.markdown-source-bar strong {
+  margin-top: 2px;
+  font-size: 11px;
+}
+
+.markdown-source-bar a {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.markdown-source-bar a:hover {
+  text-decoration: underline;
+}
+
+.markdown-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 54px);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.85;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+  color: var(--text);
+  line-height: 1.35;
+  scroll-margin-top: calc(var(--dock-height) + 24px);
+}
+
+.markdown-content h1 {
+  margin: 0 0 24px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid var(--line);
+  font-size: clamp(25px, 3vw, 36px);
+  letter-spacing: -0.025em;
+}
+
+.markdown-content h2 {
+  margin: 48px 0 16px;
+  padding: 10px 0 10px 15px;
+  border-left: 4px solid var(--accent);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 10%, transparent),
+    transparent 68%
+  );
+  font-size: clamp(20px, 2vw, 25px);
+}
+
+.markdown-content h3 {
+  margin: 30px 0 10px;
+  font-size: 17px;
+}
+
+.markdown-content p {
+  margin: 13px 0;
+  color: var(--text-soft);
+}
+
+.markdown-content strong {
+  color: var(--text);
+}
+
+.markdown-content a {
+  color: var(--accent);
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  text-underline-offset: 3px;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 13px 0;
+  padding-left: 25px;
+}
+
+.markdown-content li {
+  margin: 7px 0;
+  padding-left: 3px;
+  color: var(--text-soft);
+}
+
+.markdown-content blockquote {
+  display: grid;
+  gap: 4px;
+  margin: 20px 0;
+  padding: 15px 18px;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  background: var(--accent-soft);
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+.md-quote-break {
+  display: block;
+  height: 2px;
+}
+
+.markdown-content pre {
+  position: relative;
+  margin: 18px 0;
+  padding: 34px 18px 18px;
+  overflow-x: auto;
+  border: 1px solid color-mix(in srgb, var(--code-text) 14%, var(--code));
+  border-radius: 11px;
+  background: var(--code);
+  color: var(--code-text);
+  line-height: 1.65;
+  tab-size: 4;
+}
+
+.markdown-content pre::before {
+  position: absolute;
+  top: 8px;
+  left: 13px;
+  color: color-mix(in srgb, var(--code-text) 58%, transparent);
+  content: attr(data-language);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.markdown-content pre code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: pre;
+}
+
+.markdown-content :not(pre) > code {
+  padding: 2px 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-soft);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+}
+
+.markdown-content hr {
+  margin: 34px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.markdown-content .md-task {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.markdown-content .md-task.is-checked {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.md-checkbox {
+  display: inline-grid;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin-top: 4px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 9px;
+  line-height: 1;
+}
+
+.md-task.is-checked .md-checkbox {
+  border-color: var(--green);
+  background: var(--green);
+}
+
 .simple-guide {
   padding: 20px;
   scroll-margin-top: calc(var(--dock-height) + 20px);
@@ -2300,6 +2521,35 @@ html[data-theme="dark"] .runtime-lab {
   background: var(--accent-soft);
   font-size: 12px;
   font-weight: 700;
+}
+
+.markdown-toc {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+
+.markdown-toc a {
+  display: grid;
+  grid-template-columns: 27px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--line);
+}
+
+.markdown-toc a:hover {
+  color: var(--accent);
+}
+
+.markdown-toc span {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 8px;
+}
+
+.markdown-toc strong {
+  font-size: 10px;
+  line-height: 1.45;
 }
 
 .guide-concepts {
@@ -2632,6 +2882,32 @@ html[data-theme="dark"] .runtime-lab {
 
   .simple-panel {
     padding: 17px;
+  }
+
+  .markdown-source-bar {
+    display: grid;
+  }
+
+  .markdown-source-bar a {
+    width: fit-content;
+  }
+
+  .markdown-content {
+    padding: 22px 17px 30px;
+    font-size: 13px;
+  }
+
+  .markdown-content h2 {
+    margin-top: 38px;
+  }
+
+  .markdown-content pre {
+    margin-inline: -6px;
+    padding-inline: 13px;
+  }
+
+  .markdown-content pre code {
+    font-size: 10px;
   }
 
   .memory-region {

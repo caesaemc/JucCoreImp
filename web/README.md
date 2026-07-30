@@ -5,7 +5,8 @@
 - 顶部：6 课切换和浅色/深色按钮。
 - 左侧固定：每课 5 项 Todo。
 - 中间：每课独立设计、可逐步播放的运行结构图，外加真实源码、一个练习、三道题。
-- 右侧固定：一页讲义。
+- 右侧固定：完整讲义目录和选型口诀。
+- 主内容顶部：直接渲染对应的 `lesson-01～06.md` 完整正文。
 
 课程合并：
 
@@ -48,10 +49,13 @@ app/fast-course-data.ts            6 课精简讲义与合并关系
 app/lesson-workspace.tsx           统一三栏学习界面
 app/lesson-one-memory-lab.tsx      第一课 JVM 内存与丢失更新动画
 app/lesson-runtime-lab.tsx         第 02～06 课的专属数据结构与数据流动画
+app/lesson-markdown.tsx            完整 Markdown 讲义渲染
+app/lesson-notes.generated.ts      从 6 份 Markdown 自动生成的网页内容
 app/lesson-one-simple-data.ts      第一课简明数据
 app/course-data.ts                 原 16 课深入内容
 app/source-snippets.generated.ts   从 Java 源码生成的片段
 scripts/generate-course-sources.mjs
+scripts/generate-lesson-notes.mjs  同步 docs/learning-journal/lesson-XX.md
 app/globals.css                    简化视觉与响应式布局
 tests/                             页面与源码一致性检查
 ```

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -56,6 +57,10 @@ test("默认打开带运行时内存动画的第 01 课", async () => {
   assert.match(html, /丢失更新的一种真实交错 · STEP/);
   assert.match(html, />播放</);
   assert.match(html, /一页讲义/);
+  assert.match(html, /data-testid="lesson-markdown-01"/);
+  assert.match(html, /完整 Markdown 讲义/);
+  assert.match(html, /正确学习路径/);
+  assert.match(html, /网页正文与仓库讲义来自同一个文件/);
   assert.match(html, /只做这 5 件事/);
   assert.match(html, /data-testid="learning-checklist-01"/);
   assert.doesNotMatch(html, /自动播放|DATA ROUTING TABLE|16 LESSONS/);
@@ -81,6 +86,53 @@ test("第一课动画完整覆盖创建、读取、计算、写回和覆盖", as
   assert.match(memoryLab, /data-packet/);
   assert.match(memoryLab, /正确结果/);
   assert.match(memoryLab, /丢失更新/);
+});
+
+test("六份 Markdown 是网页讲义的唯一内容源，并在构建前自动同步", async () => {
+  const [generated, workspace, packageJson] = await Promise.all([
+    readFile(
+      new URL("../app/lesson-notes.generated.ts", import.meta.url),
+      "utf8",
+    ),
+    readFile(new URL("../app/lesson-workspace.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../package.json", import.meta.url), "utf8"),
+  ]);
+
+  const expectedTitles = [
+    "共享数据与 Java 内存模型",
+    "volatile、synchronized 与安全发布",
+    "线程协作、CAS、锁与同步器",
+    "并发集合、队列与生产消费",
+    "线程池、异步任务与虚拟线程",
+    "可靠性、排障与综合项目",
+  ];
+
+  for (let index = 0; index < expectedTitles.length; index += 1) {
+    const number = String(index + 1).padStart(2, "0");
+    const markdown = await readFile(
+      new URL(
+        `../../docs/learning-journal/lesson-${number}.md`,
+        import.meta.url,
+      ),
+      "utf8",
+    );
+    const hash = createHash("sha256").update(markdown).digest("hex");
+
+    assert.match(markdown, new RegExp(expectedTitles[index]));
+    assert.ok(
+      occurrences(markdown, /^## /gm) >= 8,
+      `lesson-${number}.md 应包含完整讲义结构`,
+    );
+    assert.match(generated, new RegExp(`"number": "${number}"`));
+    assert.match(generated, new RegExp(`"contentHash": "${hash}"`));
+  }
+
+  assert.equal(occurrences(generated, /"contentHash": "[a-f0-9]{64}"/g), 6);
+  assert.match(workspace, /getLessonNote\(lesson\.number\)/);
+  assert.match(workspace, /<LessonMarkdown note=\{note\} \/>/);
+  assert.match(workspace, /markdown-toc/);
+  assert.match(packageJson, /"prebuild": "npm run generate:notes"/);
+  assert.match(packageJson, /"predev": "npm run generate:notes"/);
 });
 
 test("后五课分别使用真实结构的可播放动画，而不是复用通用流程图", async () => {

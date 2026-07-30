@@ -5,6 +5,8 @@ import {
   getFastLessonSources,
   type FastLesson,
 } from "./fast-course-data";
+import LessonMarkdown from "./lesson-markdown";
+import { getLessonNote } from "./lesson-notes.generated";
 import LessonOneMemoryLab from "./lesson-one-memory-lab";
 import LessonRuntimeLab from "./lesson-runtime-lab";
 
@@ -19,7 +21,7 @@ const TODO_ITEMS: TodoItem[] = [
   {
     id: "guide",
     label: "读完一页讲义",
-    detail: "先记右侧三句话和选型口诀",
+    detail: "直接在网页阅读完整 Markdown 正文",
     href: "#lesson-guide",
   },
   {
@@ -88,6 +90,7 @@ function explainCodeLine(line: string): string | undefined {
 
 export default function LessonWorkspace({ lesson }: { lesson: FastLesson }) {
   const sources = useMemo(() => getFastLessonSources(lesson), [lesson]);
+  const note = getLessonNote(lesson.number);
   const storageKey = `juc-course.lesson-${lesson.number}.todos.v2`;
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [hydrated, setHydrated] = useState(false);
@@ -225,6 +228,21 @@ export default function LessonWorkspace({ lesson }: { lesson: FastLesson }) {
         </aside>
 
         <div className="simple-main-column">
+          {note ? (
+            <section className="simple-panel markdown-panel" id="lesson-guide">
+              <div className="simple-section-title">
+                <span>MD</span>
+                <div>
+                  <h2>先读完整课程讲义</h2>
+                  <p>
+                    下面直接渲染本课 Markdown；讲义、学习记录和后续有价值问答只维护这一份。
+                  </p>
+                </div>
+              </div>
+              <LessonMarkdown note={note} />
+            </section>
+          ) : null}
+
           <section className="simple-panel memory-panel" id="memory-picture">
             <div className="simple-section-title">
               <span>01</span>
@@ -387,26 +405,29 @@ export default function LessonWorkspace({ lesson }: { lesson: FastLesson }) {
           </section>
         </div>
 
-        <aside className="simple-guide" id="lesson-guide">
+        <aside className="simple-guide" id="lesson-navigation">
           <header>
-            <span>一页讲义</span>
-            <h2>这课只记这些</h2>
+            <span>讲义目录</span>
+            <h2>正文就在当前网页</h2>
           </header>
 
-          <p className="guide-hook">{lesson.hook}</p>
+          <p className="guide-hook">
+            不需要再打开本地 Markdown。点击目录可在本页正文中跳转。
+          </p>
 
-          <div className="guide-concepts">
-            {lesson.concepts.slice(0, 3).map((item, index) => (
-              <article key={item.code}>
-                <span>{index + 1}</span>
-                <div>
-                  <strong>{item.title}</strong>
-                  <p>{item.body}</p>
-                  <small>别误会：{item.boundary}</small>
-                </div>
-              </article>
-            ))}
-          </div>
+          {note ? (
+            <nav
+              className="markdown-toc"
+              aria-label={`第 ${lesson.number} 课 Markdown 目录`}
+            >
+              {note.headings.map((heading, index) => (
+                <a href={`#${heading.id}`} key={heading.id}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <strong>{heading.label}</strong>
+                </a>
+              ))}
+            </nav>
+          ) : null}
 
           <div className="guide-rules">
             <strong>面试选型口诀</strong>
