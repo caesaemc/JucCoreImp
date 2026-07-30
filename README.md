@@ -75,10 +75,8 @@ npm run lint
 
 ```text
 docs/learning-journal/   每课唯一的讲义与学习记录
-docs/lesson-01...16/     原始深入材料，快速主线完成后按需查阅
 src/main/java/.../course01...06/  六课主源码与运行入口
 src/test/java/.../course01...06/  六课主线验收测试
-src/main/java/.../lesson01...16/  保留的进阶实验，不属于主学习入口
 benchmarks/              JMH 专项实验
 jcstress/                Java 内存模型专项实验
 web/                     6 课统一学习网页
