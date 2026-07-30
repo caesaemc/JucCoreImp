@@ -83,6 +83,43 @@ test("第一课动画完整覆盖创建、读取、计算、写回和覆盖", as
   assert.match(memoryLab, /丢失更新/);
 });
 
+test("后五课分别使用真实结构的可播放动画，而不是复用通用流程图", async () => {
+  const [runtimeLab, workspace] = await Promise.all([
+    readFile(
+      new URL("../app/lesson-runtime-lab.tsx", import.meta.url),
+      "utf8",
+    ),
+    readFile(new URL("../app/lesson-workspace.tsx", import.meta.url), "utf8"),
+  ]);
+
+  const expectedLabs = [
+    ["PUBLICATION_STEPS", "AQS_STEPS", 6],
+    ["AQS_STEPS", "PIPELINE_STEPS", 7],
+    ["PIPELINE_STEPS", "POOL_STEPS", 7],
+    ["POOL_STEPS", "RELIABILITY_STEPS", 7],
+    ["RELIABILITY_STEPS", "function OutcomeCell", 7],
+  ];
+
+  for (const [start, end, count] of expectedLabs) {
+    const steps = between(runtimeLab, `const ${start}`, `${end}`);
+    assert.equal(
+      occurrences(steps, /\n\s+short: "/g),
+      count,
+      `${start} 应包含 ${count} 个动画步骤`,
+    );
+  }
+
+  assert.match(runtimeLab, /不可变配置的安全发布/);
+  assert.match(runtimeLab, /Mutex \/ AQS 的一次锁交接/);
+  assert.match(runtimeLab, /并发 Map 与有界队列的数据通道/);
+  assert.match(runtimeLab, /ThreadPoolExecutor 的四条接纳路径/);
+  assert.match(runtimeLab, /有边界的多下游聚合请求/);
+  assert.match(runtimeLab, /system-data-packet/);
+  assert.match(runtimeLab, /prefers-reduced-motion|动画控制/);
+  assert.match(workspace, /LessonRuntimeLab/);
+  assert.doesNotMatch(workspace, /className="memory-region"/);
+});
+
 test("学习入口只有 6 课，并明确记录原 16 课合并关系", async () => {
   const fastData = await readFile(
     new URL("../app/fast-course-data.ts", import.meta.url),

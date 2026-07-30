@@ -2,10 +2,10 @@
 
 面向有经验 Java 开发者的 JUC 快速面试课。原 16 课已合并为 6 课，代码实验仍完整保留。
 
-- [打开学习网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=02)
+- [打开学习网页](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=01)
 - [查看 6 课总体规划](COURSE_PLAN.md)
 - [查看学习档案](docs/learning-journal/README.md)
-- [当前第 02 课唯一讲义](docs/learning-journal/lesson-02.md)
+- [当前第 01 课学习记录](docs/learning-journal/lesson-01.md)
 
 ## 6 课学习路线
 
@@ -26,29 +26,31 @@
 4. 完成一个练习和测试。
 5. 口述三道面试题。
 
-网页统一使用一个界面：左侧固定 Todo，中间是可播放的内存更新图和源码，右侧固定一页讲义。进度和配色保存在当前浏览器。
+网页统一使用一个界面：左侧固定 Todo，中间是每课独立设计、可播放的运行结构图和源码，右侧固定一页讲义。活动数据球表示真实的读取、写入、入队、唤醒或结果回传；进度和配色保存在当前浏览器。
 
-## 当前学习：第 02 课
+## 当前学习：第 01 课
 
-只区分三个选择：
+先把一行 `value++` 拆成真实的数据更新：
 
 ```text
-只替换一个开关或引用       → volatile
-读取、判断、修改必须一起做 → synchronized / Lock
-多个字段必须是同一版本     → 不可变对象 + volatile 引用
+堆对象 value=0
+→ Thread A、B 分别读取旧值 0
+→ 两个线程分别计算新值 1
+→ 两次写回同一个 value
+→ 最终 value=1，丢失一次更新
 ```
 
 运行本课：
 
 ```bash
 mvn -q -DskipTests package
-java -cp target/classes com.caesaemc.juc.lesson02.Lesson02Application
+java -cp target/classes com.caesaemc.juc.lesson01.Lesson01Application
 ```
 
 练习测试：
 
 ```bash
-mvn -q -Dtest=SequenceExerciseTest test
+mvn -q -Dtest=ExerciseCounterTest test
 ```
 
 ## 环境与验证
