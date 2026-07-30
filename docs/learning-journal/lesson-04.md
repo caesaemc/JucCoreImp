@@ -6,8 +6,8 @@
 >
 > 学习页面：[打开第 04 课](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=04)
 
-这份文件是本课唯一讲义，同时记录学习进度、问题和复盘。原第 07～08
-课合并为一条数据通道：先用并发容器原子建立数据，再通过有界队列把数据
+这份文件是本课唯一讲义，同时记录学习进度、问题和复盘。独立的
+`course04` 主源码组成一条数据通道：先用并发容器原子建立数据，再通过有界队列把数据
 安全交给消费者，并在过载时把压力传回生产者。
 
 ## Todo
@@ -15,7 +15,7 @@
 - [ ] 读完本课讲义并区分单次安全与复合安全
 - [ ] 播放容器动画并解释 Map bin、队列槽位和两个索引
 - [ ] 阅读并运行 ConcurrentHashMap 与 BlockingQueue 源码
-- [ ] 修复 `CacheExercise` 并通过测试
+- [ ] 重写 `Course04Exercise` 并通过测试
 - [ ] 不看答案口述三道面试题
 
 ## 正确学习路径
@@ -160,18 +160,17 @@ poison pill 的数量通常至少要覆盖消费者数量，否则可能仍有�
 
 ## 源码学习顺序
 
-1. [CompoundActionDemo.java](../../src/main/java/com/caesaemc/juc/lesson07/CompoundActionDemo.java)：稳定复现 `containsKey + put` 复合竞态。
-2. [ConcurrentCache.java](../../src/main/java/com/caesaemc/juc/lesson07/ConcurrentCache.java)：使用 `computeIfAbsent`。
-3. [CopyOnWriteRegistry.java](../../src/main/java/com/caesaemc/juc/lesson07/CopyOnWriteRegistry.java)：读多写少的快照集合。
-4. [BoundedPipeline.java](../../src/main/java/com/caesaemc/juc/lesson08/BoundedPipeline.java)：有界队列、消费者和 poison pill。
-5. [QueueSemanticsDemo.java](../../src/main/java/com/caesaemc/juc/lesson08/QueueSemanticsDemo.java)：直接移交队列语义。
+1. [CompoundActionLab.java](../../src/main/java/com/caesaemc/juc/course04/CompoundActionLab.java)：稳定复现 `containsKey + put` 复合竞态。
+2. [AtomicCache.java](../../src/main/java/com/caesaemc/juc/course04/AtomicCache.java)：使用 `computeIfAbsent`。
+3. [BoundedPipeline.java](../../src/main/java/com/caesaemc/juc/course04/BoundedPipeline.java)：有界队列、消费者和结束信号。
+4. [QueueSemanticsLab.java](../../src/main/java/com/caesaemc/juc/course04/QueueSemanticsLab.java)：直接移交队列语义。
+5. [Course04Exercise.java](../../src/main/java/com/caesaemc/juc/course04/Course04Exercise.java)：同 key 原子加载练习。
 
-运行当前深入源码：
+运行本课：
 
 ```bash
 mvn -q -DskipTests package
-java -cp target/classes com.caesaemc.juc.lesson07.Lesson07Application
-java -cp target/classes com.caesaemc.juc.lesson08.Lesson08Application
+java -cp target/classes com.caesaemc.juc.course04.Course04Application
 ```
 
 ## 一个练习
@@ -179,11 +178,11 @@ java -cp target/classes com.caesaemc.juc.lesson08.Lesson08Application
 目标：让同一个 key 在并发访问时只执行一次加载。
 
 修改
-[CacheExercise.java](../../src/main/java/com/caesaemc/juc/lesson07/CacheExercise.java)，
+[Course04Exercise.java](../../src/main/java/com/caesaemc/juc/course04/Course04Exercise.java)，
 把 `get + load + put` 改为容器提供的原子复合操作。
 
 ```bash
-mvn -q -Dtest=CacheExerciseTest test
+mvn -q -Dtest=Course04ExerciseTest test
 ```
 
 完成后说明映射函数为什么不能递归更新同一个 key，以及慢远程调用为什么
@@ -208,11 +207,11 @@ mvn -q -Dtest=CacheExerciseTest test
 
 ## 学习记录
 
-### 2026-07-30：建立六课版讲义
+### 2026-07-30：建立第四课独立源码
 
-- 原第 07～08 课合并为“原子容器操作 → 有界数据通道 → 背压与停止协议”。
+- `course04` 统一承载“原子容器操作 → 有界数据通道 → 背压与停止协议”。
 - 网页动画同时展示 CHM 映射和 ArrayBlockingQueue 环形数组状态。
-- 下一步：先预测 `CompoundActionDemo` 的 creators 数量，再运行验证。
+- 下一步：先预测 `CompoundActionLab` 的加载次数，再运行验证。
 
 ## 有价值问答
 

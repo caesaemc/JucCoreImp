@@ -6,8 +6,8 @@
 >
 > 学习页面：[打开第 06 课](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=06)
 
-这份文件是本课唯一讲义，同时记录学习进度、问题和复盘。原第 14～16
-课合并为最终实战：为多下游聚合请求建立容量、时间、取消和结果边界，
+这份文件是本课唯一讲义，同时记录学习进度、问题和复盘。独立的
+`course06` 主源码构成最终实战：为多下游聚合请求建立容量、时间、取消和结果边界，
 再用可重复测试、线程转储、指标和 JFR 证明系统行为。
 
 ## Todo
@@ -15,7 +15,7 @@
 - [ ] 读完本课讲义并写出四类系统边界
 - [ ] 播放聚合动画并解释 deadline、permit、Future 和 outcomes[]
 - [ ] 阅读并运行可靠性、诊断与综合项目源码
-- [ ] 修复 `BulkheadExercise` 并通过测试
+- [ ] 重写 `Course06Exercise` 并通过测试
 - [ ] 不看答案口述三道面试题
 
 ## 正确学习路径
@@ -217,21 +217,17 @@ JFR           → 一段时间内 CPU、锁、分配、阻塞和线程事件
 
 ## 源码学习顺序
 
-1. [DeadlineBudget.java](../../src/main/java/com/caesaemc/juc/lesson14/DeadlineBudget.java)：一次建立总截止时间。
-2. [BoundedAggregator.java](../../src/main/java/com/caesaemc/juc/lesson14/BoundedAggregator.java)：虚拟线程、Semaphore 和共享预算。
-3. [ConcurrentTestHarness.java](../../src/main/java/com/caesaemc/juc/lesson15/ConcurrentTestHarness.java)：可控并发测试和失败取消。
-4. [DiagnosticFaultLab.java](../../src/main/java/com/caesaemc/juc/lesson15/DiagnosticFaultLab.java)：稳定制造队列堆积。
-5. [AbstractAggregationService.java](../../src/main/java/com/caesaemc/juc/lesson16/AbstractAggregationService.java)：聚合主流程。
-6. [PlatformAggregationService.java](../../src/main/java/com/caesaemc/juc/lesson16/PlatformAggregationService.java)：有界平台线程池。
-7. [VirtualAggregationService.java](../../src/main/java/com/caesaemc/juc/lesson16/VirtualAggregationService.java)：每下游一个虚拟线程。
+1. [DeadlineBudget.java](../../src/main/java/com/caesaemc/juc/course06/DeadlineBudget.java)：一次建立总截止时间。
+2. [ConcurrentTestHarness.java](../../src/main/java/com/caesaemc/juc/course06/ConcurrentTestHarness.java)：可控并发测试和失败取消。
+3. [ReliableAggregator.java](../../src/main/java/com/caesaemc/juc/course06/ReliableAggregator.java)：提交、限流、超时、取消、终态和有序收集。
+4. [AggregationStrategies.java](../../src/main/java/com/caesaemc/juc/course06/AggregationStrategies.java)：有界平台线程池和虚拟线程策略。
+5. [Course06Exercise.java](../../src/main/java/com/caesaemc/juc/course06/Course06Exercise.java)：限时 Bulkhead 练习。
 
-运行当前深入源码：
+运行本课：
 
 ```bash
 mvn -q -DskipTests package
-java -cp target/classes com.caesaemc.juc.lesson14.Lesson14Application
-java -cp target/classes com.caesaemc.juc.lesson15.Lesson15Application
-java -cp target/classes com.caesaemc.juc.lesson16.CapstoneApplication
+java -cp target/classes com.caesaemc.juc.course06.Course06Application
 ```
 
 ## 一个练习
@@ -240,10 +236,10 @@ java -cp target/classes com.caesaemc.juc.lesson16.CapstoneApplication
 Bulkhead。
 
 修改
-[BulkheadExercise.java](../../src/main/java/com/caesaemc/juc/lesson14/BulkheadExercise.java)。
+[Course06Exercise.java](../../src/main/java/com/caesaemc/juc/course06/Course06Exercise.java)。
 
 ```bash
-mvn -q -Dtest=BulkheadExerciseTest test
+mvn -q -Dtest=Course06ExerciseTest test
 ```
 
 完成后能证明：许可不会在正常、受检异常、运行时异常或中断路径泄漏，
@@ -268,9 +264,9 @@ mvn -q -Dtest=BulkheadExerciseTest test
 
 ## 学习记录
 
-### 2026-07-30：建立六课版讲义
+### 2026-07-30：建立第六课独立源码
 
-- 原第 14～16 课合并为“边界 → deadline → bulkhead → 结果协议 → 证据”。
+- `course06` 统一承载“边界 → deadline → bulkhead → 结果协议 → 证据”。
 - 网页动画用一次部分成功的聚合请求串联容量、超时、取消和降级。
 - 下一步：先手写系统边界清单，再阅读 `DeadlineBudget`。
 

@@ -6,8 +6,8 @@
 >
 > 学习页面：[打开第 05 课](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=05)
 
-这份文件是本课唯一讲义，同时记录学习进度、问题和复盘。原第 09～13
-课合并为一条任务执行主线：任务如何被接纳、在哪里等待、由谁执行、怎样
+这份文件是本课唯一讲义，同时记录学习进度、问题和复盘。独立的
+`course05` 主源码形成一条任务执行主线：任务如何被接纳、在哪里等待、由谁执行、怎样
 返回结果、如何共享超时，以及平台线程和虚拟线程怎样选。
 
 ## Todo
@@ -15,7 +15,7 @@
 - [ ] 读完本课讲义并能写出线程池接纳顺序
 - [ ] 播放线程池动画并解释 Worker、workQueue 和拒绝
 - [ ] 阅读并运行线程池、Future、CompletableFuture 和虚拟线程源码
-- [ ] 修复 `PoolConfigExercise` 并通过测试
+- [ ] 重写 `Course05Exercise` 并通过测试
 - [ ] 不看答案口述三道面试题
 
 ## 正确学习路径
@@ -192,23 +192,17 @@ ForkJoinPool 适合可递归拆分、子任务相对短小的 CPU 计算。Worke
 
 ## 源码学习顺序
 
-1. [ThreadPoolDecisionModel.java](../../src/main/java/com/caesaemc/juc/lesson09/ThreadPoolDecisionModel.java)：四条接纳路径。
-2. [PoolSaturationDemo.java](../../src/main/java/com/caesaemc/juc/lesson09/PoolSaturationDemo.java)：确定性走过核心、入队、扩容和拒绝。
-3. [DeadlineTaskRunner.java](../../src/main/java/com/caesaemc/juc/lesson10/DeadlineTaskRunner.java)：多个 Future 共享总截止时间。
-4. [AsyncAggregator.java](../../src/main/java/com/caesaemc/juc/lesson11/AsyncAggregator.java)：CompletableFuture 结果与异常归一化。
-5. [ParallelSumTask.java](../../src/main/java/com/caesaemc/juc/lesson12/ParallelSumTask.java)：ForkJoin 递归拆分。
-6. [VirtualThreadAggregator.java](../../src/main/java/com/caesaemc/juc/lesson13/VirtualThreadAggregator.java)：每任务一个虚拟线程和整组超时。
-7. [LimitedVirtualThreadService.java](../../src/main/java/com/caesaemc/juc/lesson13/LimitedVirtualThreadService.java)：虚拟线程与资源许可分离。
+1. [ThreadPoolDecisionLab.java](../../src/main/java/com/caesaemc/juc/course05/ThreadPoolDecisionLab.java)：确定性走过核心、入队、扩容和拒绝。
+2. [DeadlineRunner.java](../../src/main/java/com/caesaemc/juc/course05/DeadlineRunner.java)：Future 超时与取消。
+3. [AsyncAggregator.java](../../src/main/java/com/caesaemc/juc/course05/AsyncAggregator.java)：CompletableFuture 结果与异常归一化。
+4. [VirtualThreadLab.java](../../src/main/java/com/caesaemc/juc/course05/VirtualThreadLab.java)：每任务一个虚拟线程，资源许可独立限流。
+5. [Course05Exercise.java](../../src/main/java/com/caesaemc/juc/course05/Course05Exercise.java)：显式配置有界执行器。
 
-运行当前深入源码：
+运行本课：
 
 ```bash
 mvn -q -DskipTests package
-java -cp target/classes com.caesaemc.juc.lesson09.Lesson09Application
-java -cp target/classes com.caesaemc.juc.lesson10.Lesson10Application
-java -cp target/classes com.caesaemc.juc.lesson11.Lesson11Application
-java -cp target/classes com.caesaemc.juc.lesson12.Lesson12Application
-java -cp target/classes com.caesaemc.juc.lesson13.Lesson13Application
+java -cp target/classes com.caesaemc.juc.course05.Course05Application
 ```
 
 ## 一个练习
@@ -216,11 +210,11 @@ java -cp target/classes com.caesaemc.juc.lesson13.Lesson13Application
 目标：完成一个具备容量边界、命名线程和明确拒绝策略的线程池配置。
 
 修改
-[PoolConfigExercise.java](../../src/main/java/com/caesaemc/juc/lesson09/PoolConfigExercise.java)，
+[Course05Exercise.java](../../src/main/java/com/caesaemc/juc/course05/Course05Exercise.java)，
 不要使用无界队列和默认线程名。
 
 ```bash
-mvn -q -Dtest=PoolConfigExerciseTest test
+mvn -q -Dtest=Course05ExerciseTest test
 ```
 
 完成后能解释：为什么队列容量会影响 `maximumPoolSize` 是否生效，以及
@@ -245,10 +239,10 @@ mvn -q -Dtest=PoolConfigExerciseTest test
 
 ## 学习记录
 
-### 2026-07-30：建立六课版讲义
+### 2026-07-30：建立第五课独立源码
 
-- 原第 09～13 课合并为“线程池接纳 → Future → 异步编排 → 任务模型选型”。
-- 网页动画以 PoolSaturationDemo 的容量配置为依据。
+- `course05` 统一承载“线程池接纳 → Future → 异步编排 → 虚拟线程”的学习主线。
+- 网页动画以 `ThreadPoolDecisionLab` 的容量配置为依据。
 - 下一步：不看讲义先写出 execute 的四条分支，再用动画核对。
 
 ## 有价值问答

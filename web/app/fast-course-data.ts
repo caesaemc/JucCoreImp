@@ -1,18 +1,16 @@
 import {
-  getLessonDetail,
-  getLessonSources,
   type Concept,
   type CourseTab,
   type DataRoute,
   type DataZone,
   type InterviewQuestion,
   type LessonDetail,
-} from "./course-data";
+} from "./course-types";
+import { lessonOneDetail } from "./lesson-one-simple-data";
 import {
-  lessonOneDetail,
-  lessonOneSources,
-} from "./lesson-one-simple-data";
-import type { SourceSnippet } from "./source-snippets.generated";
+  sourceSnippetByKey,
+  type SourceSnippet,
+} from "./source-snippets.generated";
 
 export type FastLesson = LessonDetail & {
   duration: string;
@@ -59,12 +57,41 @@ export const fastCourseTabs: CourseTab[] = [
   },
 ];
 
-function legacy(number: string): LessonDetail {
-  const detail = getLessonDetail(number);
-  if (!detail) {
-    throw new Error(`找不到原课程 ${number}`);
-  }
-  return detail;
+function baseLesson(
+  number: string,
+  stage: number,
+  title: string,
+  shortTitle: string,
+  accent: LessonDetail["accent"],
+): LessonDetail {
+  return {
+    number,
+    stage,
+    title,
+    shortTitle,
+    english: "JUC SIX-COURSE CORE PATH",
+    hook: "",
+    lead: "",
+    outcome: "",
+    accent,
+    concepts: [],
+    flowTitle: "",
+    flowLead: "",
+    flow: [],
+    zones: [],
+    routes: [],
+    sourceKeys: [],
+    exercise: {
+      title: "",
+      summary: "",
+      requirements: [],
+      testCommand: "",
+      expected: "",
+    },
+    runClass: "",
+    interview: [],
+    finish: "能用代码、同步规则和测试证据说明本课并发行为。",
+  };
 }
 
 function concept(
@@ -124,7 +151,7 @@ const lesson01: FastLesson = {
   title: "共享数据与 Java 内存模型",
   shortTitle: "先看懂共享数据",
   duration: "60 分钟",
-  originLessons: "原第 01 课",
+  originLessons: "主源码 course01",
   quickRules: [
     "先找共享数据：谁读、谁写。",
     "再拆操作：一行代码不一定只做一步。",
@@ -143,9 +170,8 @@ const lesson01: FastLesson = {
   ],
 };
 
-const base02 = legacy("02");
 const lesson02: FastLesson = {
-  ...base02,
+  ...baseLesson("02", 1, "volatile、synchronized 与安全发布", "发布与锁", "cyan"),
   title: "volatile、synchronized 与安全发布",
   shortTitle: "发布与锁",
   hook: "一个线程改了数据，怎样让另一个线程正确地看到？",
@@ -153,7 +179,7 @@ const lesson02: FastLesson = {
     "这一课只分清三件事：看见新值、一次只让一个线程修改、把完整对象交给其他线程。",
   outcome: "能在 volatile、synchronized 和不可变对象之间做出简单、正确的选择。",
   duration: "75 分钟",
-  originLessons: "原第 02 课",
+  originLessons: "主源码 course02",
   quickRules: [
     "只替换一个开关或对象引用：先考虑 volatile。",
     "读取、判断、修改必须一起完成：用 synchronized 或锁。",
@@ -190,6 +216,24 @@ const lesson02: FastLesson = {
     route("Settings v1 引用", "Settings 对象", "volatile 写 current", "ConfigRepository.current", "完整对象被发布"),
     route("Settings v1 引用", "ConfigRepository.current", "volatile 读", "reader snapshot", "reader 看到同一版本"),
   ],
+  sourceKeys: [
+    "course02-visibility",
+    "course02-publication",
+    "course02-dcl",
+    "course02-exercise",
+  ],
+  exercise: {
+    title: "修复并发序号生成器",
+    summary: "让 next() 和 current() 使用同一把锁维护共享序号。",
+    requirements: [
+      "所有 sequence 访问遵循同一个同步协议",
+      "并发 next() 不能返回重复序号",
+      "current() 能看见已经完成的更新",
+    ],
+    testCommand: "mvn -q -Dtest=Course02ExerciseTest test",
+    expected: "10,000 次并发调用得到 10,000 个不同序号，current 为 10,000。",
+  },
+  runClass: "com.caesaemc.juc.course02.Course02Application",
   interview: [
     question(
       "高频",
@@ -210,9 +254,8 @@ const lesson02: FastLesson = {
   finish: "看到共享字段时，能先说清它需要“看见”、需要“独占”，还是需要“完整对象”。",
 };
 
-const base03 = legacy("03");
 const lesson03: FastLesson = {
-  ...base03,
+  ...baseLesson("03", 1, "线程协作、CAS、锁与同步器", "线程与锁", "amber"),
   number: "03",
   stage: 1,
   title: "线程协作、CAS、锁与同步器",
@@ -221,7 +264,7 @@ const lesson03: FastLesson = {
   lead: "把中断、CAS、Lock、Condition、AQS 和常用同步器放在一条线程协作线上学习。",
   outcome: "能根据“等待条件、竞争强度、资源数量”选择协作工具。",
   duration: "2 × 75 分钟",
-  originLessons: "合并原第 03～06 课",
+  originLessons: "主源码 course03",
   quickRules: [
     "停止线程：发 interrupt，请线程自己收尾。",
     "一个值的短更新：先看原子类；竞争高时注意重试成本。",
@@ -243,7 +286,24 @@ const lesson03: FastLesson = {
     route("新状态", "任务线程", "CAS / Lock", "共享状态", "一次更新成功"),
     route("等待线程", "竞争现场", "AQS 队列", "受保护资源", "被唤醒后重新竞争"),
   ],
-  sourceKeys: ["03-termination", "04-cas", "05-mutex", "06-semaphore"],
+  sourceKeys: [
+    "course03-termination",
+    "course03-cas",
+    "course03-aqs",
+    "course03-semaphore",
+  ],
+  exercise: {
+    title: "补全可取消任务",
+    summary: "阻塞方法抛出 InterruptedException 后，恢复标志并退出循环。",
+    requirements: [
+      "不能吞掉 InterruptedException",
+      "恢复当前线程的中断标志",
+      "停止请求到达后不再执行下一轮任务",
+    ],
+    testCommand: "mvn -q -Dtest=Course03ExerciseTest test",
+    expected: "任务能收尾退出，CAS、AQS 和资源许可测试全部通过。",
+  },
+  runClass: "com.caesaemc.juc.course03.Course03Application",
   interview: [
     question("中断", "interrupt 为什么不是 kill？", "它只发出停止请求，任务要主动检查、清理并退出。"),
     question("CAS", "CAS 失败后为什么要重试？", "说明旧值已变化，必须重新读取并计算新值。"),
@@ -251,9 +311,8 @@ const lesson03: FastLesson = {
   ],
 };
 
-const base04 = legacy("07");
 const lesson04: FastLesson = {
-  ...base04,
+  ...baseLesson("04", 2, "并发集合、队列与生产消费", "集合与队列", "green"),
   number: "04",
   stage: 2,
   title: "并发集合、队列与生产消费",
@@ -262,7 +321,7 @@ const lesson04: FastLesson = {
   lead: "把 ConcurrentHashMap 的复合操作和 BlockingQueue 的背压放在一课里。",
   outcome: "能写出不会重复加载、不会无限堆积的并发数据通道。",
   duration: "90 分钟",
-  originLessons: "合并原第 07～08 课",
+  originLessons: "主源码 course04",
   quickRules: [
     "不要把 containsKey 和 put 拼成一个并发操作。",
     "同 key 建立值优先用 computeIfAbsent 等容器原子方法。",
@@ -284,7 +343,24 @@ const lesson04: FastLesson = {
     route("item", "并发容器", "queue.put", "有界队列", "容量形成背压"),
     route("item / batch", "有界队列", "take / drainTo", "消费者", "阻塞等待且能批量处理"),
   ],
-  sourceKeys: ["07-compound", "07-cache", "08-pipeline", "08-handoff"],
+  sourceKeys: [
+    "course04-compound",
+    "course04-cache",
+    "course04-pipeline",
+    "course04-handoff",
+  ],
+  exercise: {
+    title: "修复同 key 重复加载",
+    summary: "把判断和建立收进 ConcurrentHashMap 的原子复合操作。",
+    requirements: [
+      "同一个 key 只执行一次 loader",
+      "不使用 containsKey + put",
+      "不同 key 仍可以并发加载",
+    ],
+    testCommand: "mvn -q -Dtest=Course04ExerciseTest test",
+    expected: "1,000 次并发请求只触发一次同 key 加载，队列实验也通过。",
+  },
+  runClass: "com.caesaemc.juc.course04.Course04Application",
   interview: [
     question("Map", "ConcurrentHashMap 的 put 安全，为什么 containsKey+put 不安全？", "两次调用之间会被其他线程插入，整体不是一个动作。"),
     question("队列", "为什么生产环境更偏向有界队列？", "它能给出明确的满载信号，避免任务无限堆积。"),
@@ -292,9 +368,8 @@ const lesson04: FastLesson = {
   ],
 };
 
-const base05 = legacy("09");
 const lesson05: FastLesson = {
-  ...base05,
+  ...baseLesson("05", 2, "线程池、异步任务与虚拟线程", "任务执行", "amber"),
   number: "05",
   stage: 2,
   title: "线程池、异步任务与虚拟线程",
@@ -303,7 +378,7 @@ const lesson05: FastLesson = {
   lead: "把线程池、Future、CompletableFuture、ForkJoin 和虚拟线程放进同一张任务执行地图。",
   outcome: "能为 CPU 计算、阻塞 I/O 和异步编排选择合适的执行方式。",
   duration: "2 × 90 分钟",
-  originLessons: "合并原第 09～13 课",
+  originLessons: "主源码 course05",
   quickRules: [
     "线程池先看：核心线程、队列、最大线程、拒绝策略。",
     "多个独立 I/O 可并发发起，但要共享一个总超时。",
@@ -325,7 +400,24 @@ const lesson05: FastLesson = {
     route("结果或异常", "执行器", "Future / CompletableFuture", "Future 图", "状态可组合"),
     route("最终结果", "Future 图", "总 deadline", "调用方", "等待时间不无限累加"),
   ],
-  sourceKeys: ["09-decision", "10-deadline", "11-aggregate", "13-virtual"],
+  sourceKeys: [
+    "course05-pool",
+    "course05-deadline",
+    "course05-aggregate",
+    "course05-virtual",
+  ],
+  exercise: {
+    title: "配置有边界的执行器",
+    summary: "显式设置线程数、队列容量、线程名和拒绝策略。",
+    requirements: [
+      "不能使用隐藏无界队列的便捷工厂",
+      "队列容量和拒绝行为必须明确",
+      "线程名称能定位到本课程执行器",
+    ],
+    testCommand: "mvn -q -Dtest=Course05ExerciseTest test",
+    expected: "四条接纳路径、超时取消、异步聚合和资源限流测试全部通过。",
+  },
+  runClass: "com.caesaemc.juc.course05.Course05Application",
   interview: [
     question("线程池", "ThreadPoolExecutor 提交任务的顺序？", "先核心线程，再入队，再尝试非核心线程，最后拒绝。"),
     question("超时", "多个 Future 为什么要共享总截止时间？", "否则逐个完整等待会把总延迟按任务数累加。"),
@@ -333,9 +425,8 @@ const lesson05: FastLesson = {
   ],
 };
 
-const base06 = legacy("14");
 const lesson06: FastLesson = {
-  ...base06,
+  ...baseLesson("06", 2, "可靠性、排障与综合项目", "实战", "red"),
   number: "06",
   stage: 2,
   title: "可靠性、排障与综合项目",
@@ -344,7 +435,7 @@ const lesson06: FastLesson = {
   lead: "把超时、限流、降级、并发测试、线程转储和多下游聚合服务放在最终一课。",
   outcome: "能设计有上限、能取消、可观测，并且故障时还能返回部分结果的并发服务。",
   duration: "2 × 90 分钟",
-  originLessons: "合并原第 14～16 课",
+  originLessons: "主源码 course06",
   quickRules: [
     "入口、队列、下游并发和等待时间都要有上限。",
     "故障要区分超时、拒绝、取消和业务失败。",
@@ -366,7 +457,24 @@ const lesson06: FastLesson = {
     route("调用参数", "容量闸门", "受限并发 + timeout", "下游调用", "故障不会无限占用资源"),
     route("结果与原因", "下游调用", "按原顺序收集", "响应与指标", "部分结果可保留、问题可定位"),
   ],
-  sourceKeys: ["14-deadline", "15-harness", "16-engine", "16-virtual"],
+  sourceKeys: [
+    "course06-deadline",
+    "course06-harness",
+    "course06-engine",
+    "course06-strategy",
+  ],
+  exercise: {
+    title: "实现限时 Bulkhead",
+    summary: "把容量、限时等待、降级和许可释放写进同一个调用协议。",
+    requirements: [
+      "拿不到许可时返回明确降级结果",
+      "异常路径也必须归还许可",
+      "中断不能被转换成普通业务失败",
+    ],
+    testCommand: "mvn -q -Dtest=Course06ExerciseTest test",
+    expected: "并发时序、部分结果和许可归还测试全部通过。",
+  },
+  runClass: "com.caesaemc.juc.course06.Course06Application",
   interview: [
     question("容量", "为什么队列和等待时间都要有上限？", "防止过载变成内存增长和无限尾延迟，并让系统及时拒绝或降级。"),
     question("排障", "线上线程很多但吞吐下降，先看什么？", "先抓线程转储看 RUNNABLE、BLOCKED、WAITING 分布和共同栈，再结合指标与 JFR。"),
@@ -388,8 +496,11 @@ export function getFastLessonDetail(number: string): FastLesson | undefined {
 }
 
 export function getFastLessonSources(lesson: FastLesson): SourceSnippet[] {
-  if (lesson.number === "01") {
-    return lessonOneSources;
-  }
-  return getLessonSources(lesson);
+  return lesson.sourceKeys.map((key) => {
+    const source = sourceSnippetByKey[key];
+    if (!source) {
+      throw new Error(`课程 ${lesson.number} 缺少六课主源码片段：${key}`);
+    }
+    return source;
+  });
 }

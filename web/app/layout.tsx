@@ -26,11 +26,11 @@ export async function generateMetadata(): Promise<Metadata> {
     "6 课 Java JUC 快速面试学习站：可播放的 JVM 内存更新图、真实源码、练习和面试题。";
 
   return {
-    title: "JUC 快速面试课 · 6 课精简版",
+    title: "JUC 六课源码实战",
     description,
     metadataBase: new URL(origin),
     openGraph: {
-      title: "JUC 快速面试课 · 6 课精简版",
+      title: "JUC 六课源码实战",
       description,
       type: "website",
       locale: "zh_CN",
@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: "JUC 快速面试课 · 6 课精简版",
+      title: "JUC 六课源码实战",
       description,
       images: [`${origin}/og-memory-lab.png`],
     },

@@ -1,5 +1,4 @@
-import type { LessonDetail } from "./course-data";
-import type { SourceSnippet } from "./source-snippets.generated";
+import type { LessonDetail } from "./course-types";
 
 export const lessonOneDetail: LessonDetail = {
   number: "01",
@@ -134,7 +133,12 @@ export const lessonOneDetail: LessonDetail = {
       guarantee: "再次写入 1，覆盖前一次结果",
     },
   ],
-  sourceKeys: ["01-counter", "01-lost-update", "01-happens-before"],
+  sourceKeys: [
+    "course01-shared",
+    "course01-lost",
+    "course01-hb",
+    "course01-exercise",
+  ],
   exercise: {
     title: "修复线程安全计数器",
     summary: "不使用原子类，让多个线程执行加一时不丢数据。",
@@ -143,10 +147,10 @@ export const lessonOneDetail: LessonDetail = {
       "value() 必须能看到已经完成的更新",
       "说明代码使用了哪一把锁",
     ],
-    testCommand: "mvn -q -Dtest=ExerciseCounterTest test",
+    testCommand: "mvn -q -Dtest=Course01ExerciseTest test",
     expected: "所有更新都被保留，最终值等于期望值。",
   },
-  runClass: "com.caesaemc.juc.lesson01.Lesson01Application",
+  runClass: "com.caesaemc.juc.course01.Course01Application",
   interview: [
     {
       tag: "高频",
@@ -166,70 +170,3 @@ export const lessonOneDetail: LessonDetail = {
   ],
   finish: "看到共享字段时，先问谁读、谁写、是不是复合操作、靠什么保证可见。",
 };
-
-export const lessonOneSources: SourceSnippet[] = [
-  {
-    key: "01-counter",
-    tab: "共享计数器",
-    filename: "UnsafeCounter.java",
-    path: "src/main/java/com/caesaemc/juc/lesson01/UnsafeCounter.java",
-    startLine: 10,
-    endLine: 20,
-    highlights: [10, 14, 19],
-    note: "value 放在 Counter 对象里，两个线程共享；value++ 实际上是三步。",
-    link: "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson01/UnsafeCounter.java#L10-L20",
-    code: `    private int value;
-
-    @Override
-    public void increment() {
-        value++;
-    }
-
-    @Override
-    public int value() {
-        return value;
-    }`,
-  },
-  {
-    key: "01-lost-update",
-    tab: "丢失更新",
-    filename: "DeterministicLostUpdateDemo.java",
-    path: "src/main/java/com/caesaemc/juc/lesson01/DeterministicLostUpdateDemo.java",
-    startLine: 18,
-    endLine: 30,
-    highlights: [20, 21, 24, 25],
-    note: "两个线程都先读完，再同时写回，所以能稳定看到“期望 2、实际 1”。",
-    link: "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson01/DeterministicLostUpdateDemo.java#L18-L30",
-    code: `        Runnable increment = () -> {
-            int snapshot = state.value;
-            bothThreadsRead.countDown();
-            try {
-                allowWriteBack.await();
-                state.value = snapshot + 1;
-            } catch (InterruptedException exception) {
-                Thread.currentThread().interrupt();
-            }
-        };`,
-  },
-  {
-    key: "01-happens-before",
-    tab: "start / join",
-    filename: "HappensBeforeDemo.java",
-    path: "src/main/java/com/caesaemc/juc/lesson01/HappensBeforeDemo.java",
-    startLine: 17,
-    endLine: 29,
-    highlights: [17, 21, 22, 25, 26, 29],
-    note: "start 负责把 input 交给工作线程，join 负责把 output 带回主线程。",
-    link: "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson01/HappensBeforeDemo.java#L17-L29",
-    code: `        state.input = 42;
-
-        Thread worker = new Thread(() -> {
-            state.observedByWorker = state.input;
-            state.output = state.input * 2;
-        });
-
-        worker.start();
-        worker.join();
-        return new HappensBeforeResult(state.observedByWorker, state.output);`,
-  },
-];

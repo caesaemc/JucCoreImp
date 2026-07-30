@@ -66,16 +66,16 @@
 
 ## 源码学习顺序
 
-1. [VolatileCounterDemo.java](../../src/main/java/com/caesaemc/juc/lesson02/VolatileCounterDemo.java)：看懂为什么 `volatile int` 的 `++` 仍不安全。
-2. [SafePublicationDemo.java](../../src/main/java/com/caesaemc/juc/lesson02/SafePublicationDemo.java)：看完整对象怎样通过 `current` 交给读线程。
-3. [DclSingleton.java](../../src/main/java/com/caesaemc/juc/lesson02/DclSingleton.java)：看第一次检查、加锁、第二次检查和发布。
-4. [SequenceExercise.java](../../src/main/java/com/caesaemc/juc/lesson02/SequenceExercise.java)：自己完成本课练习。
+1. [VisibilityLab.java](../../src/main/java/com/caesaemc/juc/course02/VisibilityLab.java)：看 volatile 停止标志怎样在线程之间传递。
+2. [SafePublicationLab.java](../../src/main/java/com/caesaemc/juc/course02/SafePublicationLab.java)：看完整对象怎样通过 `current` 交给读线程。
+3. [DclSingleton.java](../../src/main/java/com/caesaemc/juc/course02/DclSingleton.java)：看第一次检查、加锁、第二次检查和发布。
+4. [Course02Exercise.java](../../src/main/java/com/caesaemc/juc/course02/Course02Exercise.java)：检查两个方法是否遵循同一把锁。
 
 运行：
 
 ```bash
 mvn -q -DskipTests package
-java -cp target/classes com.caesaemc.juc.lesson02.Lesson02Application
+java -cp target/classes com.caesaemc.juc.course02.Course02Application
 ```
 
 观察时只回答：
@@ -88,10 +88,10 @@ java -cp target/classes com.caesaemc.juc.lesson02.Lesson02Application
 
 目标：不使用原子类，让多个线程取得不重复、连续的序号。
 
-修改 [SequenceExercise.java](../../src/main/java/com/caesaemc/juc/lesson02/SequenceExercise.java)，让 `next()` 和 `current()` 使用同一把锁。
+阅读并尝试重写 [Course02Exercise.java](../../src/main/java/com/caesaemc/juc/course02/Course02Exercise.java)，让 `next()` 和 `current()` 使用同一把锁。
 
 ```bash
-mvn -q -Dtest=SequenceExerciseTest test
+mvn -q -Dtest=Course02ExerciseTest test
 ```
 
 完成后写一句证明：
@@ -116,9 +116,9 @@ mvn -q -Dtest=SequenceExerciseTest test
 
 ### 2026-07-29：开始第二课
 
-- 课程已从 16 课合并为 6 课，但第二课主题不变。
+- 第二课已经拥有独立的 `course02` 主源码、运行入口和验收测试。
 - 页面、Todo 和讲义已压缩，当前先看内存图，再读源码。
-- 下一步：运行 `VolatileCounterDemo`，先预测结果再看输出。
+- 下一步：运行 `Course02Application`，先预测结果再看输出。
 
 ### 2026-07-30：内存图升级为可播放运行结构
 

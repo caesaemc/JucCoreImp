@@ -1,5 +1,5 @@
-// 由 scripts/generate-course-sources.mjs 从真实 Java 源码生成。
-// 修改源码或行号后请重新运行：node scripts/generate-course-sources.mjs
+// 由 scripts/generate-course-sources.mjs 从六课主源码生成。
+// 修改 course01～course06 后会在 dev/build 前自动同步。
 
 export type SourceSnippet = {
   key: string;
@@ -16,972 +16,456 @@ export type SourceSnippet = {
 
 export const sourceSnippets = [
   {
-    "key": "02-publication",
-    "tab": "不可变快照",
-    "path": "src/main/java/com/caesaemc/juc/lesson02/SafePublicationDemo.java",
-    "startLine": 67,
-    "endLine": 94,
-    "highlights": [
-      70,
-      76,
-      78,
-      81,
-      84,
-      89,
-      93
-    ],
-    "note": "先完整构造 Settings，再替换一次 volatile 引用；读线程只取一次引用，所以不会把两个版本的字段混在一起。",
-    "filename": "SafePublicationDemo.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson02/SafePublicationDemo.java#L67-L94",
-    "code": "    public static final class ConfigRepository {\n        // 所有线程只通过 current 取得配置。\n        // volatile 让“换新配置”和“读取新配置”建立可靠的交接。\n        private volatile Settings current;\n\n        public ConfigRepository(Settings initial) {\n            this.current = initial;\n        }\n\n        public Settings snapshot() {\n            // 只读一次引用，后面一直使用同一个 Settings 版本。\n            return current;\n        }\n\n        public void update(Settings settings) {\n            // settings 在传进来之前已经完整构造。\n            // 这里只替换一次引用，不会逐个修改配置字段。\n            current = settings;\n        }\n    }\n\n    // record 的字段都是 final；对象建好以后不再修改。\n    public record Settings(int version, int timeoutMillis, int retries, int checksum) {\n\n        public static Settings of(int version, int timeoutMillis, int retries) {\n            // 先把同一版本的所有字段放进一个新对象。\n            return new Settings(version, timeoutMillis, retries, checksum(version, timeoutMillis, retries));\n        }"
-  },
-  {
-    "key": "02-dcl",
-    "tab": "DCL 单例",
-    "path": "src/main/java/com/caesaemc/juc/lesson02/DclSingleton.java",
-    "startLine": 8,
-    "endLine": 34,
-    "highlights": [
-      9,
-      19,
-      21,
-      22,
-      24,
-      25,
-      27,
-      29,
-      33
-    ],
-    "note": "第一次检查避免每次加锁，锁内第二次检查避免重复创建；volatile 把完整对象交给其他线程。",
-    "filename": "DclSingleton.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson02/DclSingleton.java#L8-L34",
-    "code": "    // 这是其他线程取得单例的共享入口，必须安全发布。\n    private static volatile DclSingleton instance;\n\n    private final long createdAtNanos;\n\n    private DclSingleton() {\n        createdAtNanos = System.nanoTime();\n    }\n\n    public static DclSingleton instance() {\n        // 先复制到局部变量，后面少读几次 volatile。\n        DclSingleton local = instance;\n        // 已经创建过时直接返回，不必每次都加锁。\n        if (local == null) {\n            synchronized (DclSingleton.class) {\n                // 等锁期间，另一个线程可能已经创建完成，所以要再检查一次。\n                local = instance;\n                if (local == null) {\n                    // 先把对象完整创建好。\n                    local = new DclSingleton();\n                    // 再通过 volatile 引用交给其他线程。\n                    instance = local;\n                }\n            }\n        }\n        return local;\n    }"
-  },
-  {
-    "key": "02-exercise",
-    "tab": "序号练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson02/SequenceExercise.java",
-    "startLine": 8,
-    "endLine": 19,
-    "highlights": [
-      9,
-      11,
-      12,
-      13,
-      16,
-      17,
-      18
-    ],
-    "note": "volatile 只能让新值可见，不能把 ++ 合成一个动作；练习要求 next 与 current 使用同一把锁。",
-    "filename": "SequenceExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson02/SequenceExercise.java#L8-L19",
-    "code": "    // volatile 能让新值可见，但不能保护“读取、加一、写回”这一整段。\n    private volatile int sequence;\n\n    public int next() {\n        // TODO：多个线程可能读到同一个旧值，请让整个 ++ 一次只由一个线程执行。\n        return ++sequence;\n    }\n\n    public int current() {\n        // 思考：它应该和 next() 使用哪一把锁，才能可靠看到已完成的更新？\n        return sequence;\n    }"
-  },
-  {
-    "key": "03-termination",
-    "tab": "两阶段终止",
-    "path": "src/main/java/com/caesaemc/juc/lesson03/TwoPhaseTerminator.java",
-    "startLine": 39,
-    "endLine": 65,
-    "highlights": [
-      42,
-      44,
-      46,
-      48,
-      51,
-      52,
-      61,
-      62
-    ],
-    "note": "interrupt 只是停止请求；工作线程恢复中断、离开循环，并在 finally 中完成终态通知，调用者再 join 验收。",
-    "filename": "TwoPhaseTerminator.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson03/TwoPhaseTerminator.java#L39-L65",
-    "code": "    private void runLoop() {\n        running.countDown();\n        try {\n            while (!Thread.currentThread().isInterrupted()) {\n                try {\n                    TimeUnit.MILLISECONDS.sleep(10);\n                    cycles.incrementAndGet();\n                } catch (InterruptedException exception) {\n                    // sleep 会清除中断标志，恢复它让循环条件观察到停止请求。\n                    Thread.currentThread().interrupt();\n                }\n            }\n        } finally {\n            stopped.countDown();\n        }\n    }\n\n    @Override\n    public void close() throws InterruptedException {\n        if (!started.get()) {\n            return;\n        }\n        worker.interrupt();\n        worker.join(Duration.ofSeconds(2).toMillis());\n        if (worker.isAlive()) {\n            throw new IllegalStateException(\"工作线程未能按时停止\");\n        }"
-  },
-  {
-    "key": "03-mailbox",
-    "tab": "保护性暂停",
-    "path": "src/main/java/com/caesaemc/juc/lesson03/GuardedMailbox.java",
-    "startLine": 13,
-    "endLine": 33,
-    "highlights": [
-      15,
-      17,
-      20,
-      21,
-      26,
-      30,
-      31,
-      32
-    ],
-    "note": "等待线程共享一个绝对截止时间，每次唤醒重算剩余预算；条件写入和 notifyAll 受同一监视器保护。",
-    "filename": "GuardedMailbox.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson03/GuardedMailbox.java#L13-L33",
-    "code": "    public synchronized T await(Duration timeout) throws InterruptedException {\n        long remainingNanos = timeout.toNanos();\n        long deadline = System.nanoTime() + remainingNanos;\n\n        while (!completed && remainingNanos > 0) {\n            long millis = remainingNanos / 1_000_000L;\n            int nanos = (int) (remainingNanos % 1_000_000L);\n            wait(millis, nanos);\n            remainingNanos = deadline - System.nanoTime();\n        }\n        return completed ? value : null;\n    }\n\n    public synchronized boolean complete(T result) {\n        if (completed) {\n            return false;\n        }\n        value = result;\n        completed = true;\n        notifyAll();\n        return true;"
-  },
-  {
-    "key": "03-exercise",
-    "tab": "取消练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson03/CancellationExercise.java",
-    "startLine": 13,
-    "endLine": 22,
-    "highlights": [
-      15,
-      17,
-      19,
-      20
-    ],
-    "note": "InterruptedException 会清除中断标志；空 catch 会吞掉取消协议，必须恢复中断并退出循环。",
-    "filename": "CancellationExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson03/CancellationExercise.java#L13-L22",
-    "code": "    @Override\n    public void run() {\n        while (true) {\n            try {\n                TimeUnit.MILLISECONDS.sleep(20);\n                completedUnits.incrementAndGet();\n            } catch (InterruptedException ignored) {\n                // TODO：不能吞掉中断。恢复中断状态并退出循环。\n            }\n        }"
-  },
-  {
-    "key": "04-cas",
-    "tab": "CAS 循环",
-    "path": "src/main/java/com/caesaemc/juc/lesson04/VarHandleCounter.java",
-    "startLine": 24,
-    "endLine": 37,
-    "highlights": [
-      25,
-      28,
-      29,
-      30,
-      31,
-      32,
-      36,
-      37
-    ],
-    "note": "每次失败都重新读取 observed 并计算 next；成功的 compareAndSet 是这次递增的线性化点。",
-    "filename": "VarHandleCounter.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson04/VarHandleCounter.java#L24-L37",
-    "code": "    @SuppressWarnings(\"FieldMayBeFinal\")\n    private volatile int value;\n\n    @Override\n    public void increment() {\n        int observed;\n        do {\n            observed = (int) VALUE.getVolatile(this);\n        } while (!VALUE.compareAndSet(this, observed, observed + 1));\n    }\n\n    @Override\n    public int value() {\n        return (int) VALUE.getVolatile(this);"
-  },
-  {
-    "key": "04-aba",
-    "tab": "ABA 时间线",
-    "path": "src/main/java/com/caesaemc/juc/lesson04/AbaDemo.java",
-    "startLine": 14,
-    "endLine": 30,
-    "highlights": [
-      16,
-      17,
-      18,
-      19,
-      23,
-      24,
-      25,
-      26,
-      27,
-      28
-    ],
-    "note": "普通引用只看到最终仍为 A；带戳引用同时比较版本，能发现 A→B→A 的中间历史。",
-    "filename": "AbaDemo.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson04/AbaDemo.java#L14-L30",
-    "code": "    public static AbaResult demonstrate() {\n        AtomicReference<String> plain = new AtomicReference<>(\"A\");\n        String plainObserved = plain.get();\n        plain.compareAndSet(\"A\", \"B\");\n        plain.compareAndSet(\"B\", \"A\");\n        boolean plainAccepted = plain.compareAndSet(plainObserved, \"C\");\n\n        AtomicStampedReference<String> stamped = new AtomicStampedReference<>(\"A\", 0);\n        int[] stampHolder = new int[1];\n        String stampedObserved = stamped.get(stampHolder);\n        int originalStamp = stampHolder[0];\n        stamped.compareAndSet(\"A\", \"B\", 0, 1);\n        stamped.compareAndSet(\"B\", \"A\", 1, 2);\n        boolean stampedAccepted =\n                stamped.compareAndSet(stampedObserved, \"C\", originalStamp, originalStamp + 1);\n\n        return new AbaResult(plainAccepted, stampedAccepted, stamped.getStamp());"
-  },
-  {
-    "key": "04-exercise",
-    "tab": "余额练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson04/BoundedBalanceExercise.java",
-    "startLine": 10,
-    "endLine": 27,
-    "highlights": [
-      10,
-      16,
-      17,
-      18,
-      21
-    ],
-    "note": "余额检查和扣减必须放进同一 CAS 重试循环；分离的 get/set 会在并发下突破余额不为负的不变量。",
-    "filename": "BoundedBalanceExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson04/BoundedBalanceExercise.java#L10-L27",
-    "code": "    private final AtomicInteger balance;\n\n    public BoundedBalanceExercise(int initialBalance) {\n        balance = new AtomicInteger(initialBalance);\n    }\n\n    public boolean withdraw(int amount) {\n        // TODO：把 check-then-act 改成 CAS 循环。\n        if (balance.get() < amount) {\n            return false;\n        }\n        balance.set(balance.get() - amount);\n        return true;\n    }\n\n    public int balance() {\n        return balance.get();\n    }"
-  },
-  {
-    "key": "05-mutex",
-    "tab": "AQS 互斥锁",
-    "path": "src/main/java/com/caesaemc/juc/lesson05/Mutex.java",
-    "startLine": 53,
-    "endLine": 80,
-    "highlights": [
-      56,
-      57,
-      58,
-      65,
-      66,
-      69,
-      70,
-      75,
-      79,
-      80
-    ],
-    "note": "子类只定义 state 成功/释放规则；AQS 负责失败线程的入队、park、唤醒、中断和取消。",
-    "filename": "Mutex.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson05/Mutex.java#L53-L80",
-    "code": "    private static final class Sync extends AbstractQueuedSynchronizer {\n\n        @Override\n        protected boolean tryAcquire(int ignored) {\n            if (compareAndSetState(0, 1)) {\n                setExclusiveOwnerThread(Thread.currentThread());\n                return true;\n            }\n            return false;\n        }\n\n        @Override\n        protected boolean tryRelease(int ignored) {\n            if (getState() == 0 || getExclusiveOwnerThread() != Thread.currentThread()) {\n                throw new IllegalMonitorStateException(\"当前线程不是锁持有者\");\n            }\n            setExclusiveOwnerThread(null);\n            setState(0);\n            return true;\n        }\n\n        @Override\n        protected boolean isHeldExclusively() {\n            return getState() == 1 && getExclusiveOwnerThread() == Thread.currentThread();\n        }\n\n        private Condition newCondition() {\n            return new ConditionObject();"
-  },
-  {
-    "key": "05-condition",
-    "tab": "双条件队列",
-    "path": "src/main/java/com/caesaemc/juc/lesson05/BoundedBuffer.java",
-    "startLine": 30,
-    "endLine": 60,
-    "highlights": [
-      31,
-      33,
-      34,
-      38,
-      39,
-      41,
-      47,
-      49,
-      50,
-      55,
-      56,
-      59
-    ],
-    "note": "notFull 与 notEmpty 分离等待者；await 释放锁，signal 后节点仍需转移到同步队列重新竞争。",
-    "filename": "BoundedBuffer.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson05/BoundedBuffer.java#L30-L60",
-    "code": "    public void put(E element) throws InterruptedException {\n        lock.lockInterruptibly();\n        try {\n            while (count == elements.length) {\n                notFull.await();\n            }\n            elements[putIndex] = element;\n            putIndex = (putIndex + 1) % elements.length;\n            count++;\n            notEmpty.signal();\n        } finally {\n            lock.unlock();\n        }\n    }\n\n    @SuppressWarnings(\"unchecked\")\n    public E take() throws InterruptedException {\n        lock.lockInterruptibly();\n        try {\n            while (count == 0) {\n                notEmpty.await();\n            }\n            E element = (E) elements[takeIndex];\n            elements[takeIndex] = null;\n            takeIndex = (takeIndex + 1) % elements.length;\n            count--;\n            notFull.signal();\n            return element;\n        } finally {\n            lock.unlock();\n        }"
-  },
-  {
-    "key": "05-exercise",
-    "tab": "共享模式练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson05/OneShotLatchExercise.java",
-    "startLine": 12,
-    "endLine": 35,
+    "key": "course01-shared",
+    "tab": "共享变量",
+    "filename": "SharedCounterLab.java",
+    "path": "src/main/java/com/caesaemc/juc/course01/SharedCounterLab.java",
+    "startLine": 1,
+    "endLine": 36,
     "highlights": [
       12,
-      13,
       16,
-      17,
+      25,
       27,
       28,
-      32,
-      33,
-      34
+      31
     ],
-    "note": "打开前共享获取失败并排队；state 变为 1 后释放传播唤醒，现有与未来调用者都可直接通过。",
-    "filename": "OneShotLatchExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson05/OneShotLatchExercise.java#L12-L35",
-    "code": "    public void await() throws InterruptedException {\n        // TODO：使用共享模式可中断获取。\n    }\n\n    public void open() {\n        // TODO：释放共享状态并传播唤醒。\n    }\n\n    public boolean isOpen() {\n        return sync.getStateValue() == 1;\n    }\n\n    private static final class Sync extends AbstractQueuedSynchronizer {\n\n        @Override\n        protected int tryAcquireShared(int ignored) {\n            return getState() == 1 ? 1 : -1;\n        }\n\n        @Override\n        protected boolean tryReleaseShared(int ignored) {\n            setState(1);\n            return true;\n        }"
+    "note": "字段位于共享堆对象中；普通 ++ 会拆成三步，同一把监视器才能把整个复合更新包起来。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course01/SharedCounterLab.java#L1-L36",
+    "code": "package com.caesaemc.juc.course01;\n\n/**\n * 第一课的最小共享变量：字段在堆对象中，多个线程共同读写它。\n */\npublic final class SharedCounterLab {\n\n    private SharedCounterLab() {\n    }\n\n    public static final class UnsafeCounter {\n        private int value;\n\n        public void increment() {\n            // 这一行会被拆成“读取、加一、写回”，并不是一个原子动作。\n            value++;\n        }\n\n        public int value() {\n            return value;\n        }\n    }\n\n    public static final class LockedCounter {\n        private int value;\n\n        public synchronized void increment() {\n            value++;\n        }\n\n        public synchronized int value() {\n            return value;\n        }\n    }\n}\n"
   },
   {
-    "key": "06-semaphore",
-    "tab": "资源闸门",
-    "path": "src/main/java/com/caesaemc/juc/lesson06/ResourceGate.java",
-    "startLine": 24,
-    "endLine": 34,
-    "highlights": [
-      26,
-      27,
-      28,
-      29,
-      30,
-      31,
-      32,
-      33
-    ],
-    "note": "许可代表真实稀缺资源；只有 acquire 成功后才进入 try/finally，异常路径也不会泄漏容量。",
-    "filename": "ResourceGate.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson06/ResourceGate.java#L24-L34",
-    "code": "    public <T> T call(Callable<T> action) throws Exception {\n        Objects.requireNonNull(action, \"action\");\n        permits.acquire();\n        int now = active.incrementAndGet();\n        maxObserved.accumulateAndGet(now, Math::max);\n        try {\n            return action.call();\n        } finally {\n            active.decrementAndGet();\n            permits.release();\n        }"
-  },
-  {
-    "key": "06-stamped",
-    "tab": "乐观读取",
-    "path": "src/main/java/com/caesaemc/juc/lesson06/StampedPoint.java",
-    "startLine": 14,
-    "endLine": 37,
+    "key": "course01-lost",
+    "tab": "丢失更新",
+    "filename": "LostUpdateLab.java",
+    "path": "src/main/java/com/caesaemc/juc/course01/LostUpdateLab.java",
+    "startLine": 1,
+    "endLine": 45,
     "highlights": [
       15,
-      20,
-      25,
-      26,
-      27,
-      28,
-      29,
-      31,
-      32,
-      34
-    ],
-    "note": "乐观读先复制普通字段到局部变量，再 validate；验证失败必须持读锁重新复制，不能继续使用旧快照。",
-    "filename": "StampedPoint.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson06/StampedPoint.java#L14-L37",
-    "code": "    public void move(double deltaX, double deltaY) {\n        long stamp = lock.writeLock();\n        try {\n            x += deltaX;\n            y += deltaY;\n        } finally {\n            lock.unlockWrite(stamp);\n        }\n    }\n\n    public double distanceFromOrigin() {\n        long stamp = lock.tryOptimisticRead();\n        double currentX = x;\n        double currentY = y;\n        if (!lock.validate(stamp)) {\n            stamp = lock.readLock();\n            try {\n                currentX = x;\n                currentY = y;\n            } finally {\n                lock.unlockRead(stamp);\n            }\n        }\n        return Math.hypot(currentX, currentY);"
-  },
-  {
-    "key": "06-exercise",
-    "tab": "许可练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson06/PermitGuardExercise.java",
-    "startLine": 17,
-    "endLine": 22,
-    "highlights": [
-      18,
+      16,
       19,
       20,
-      21
-    ],
-    "note": "当前实现遇到 action 异常就跳过 release；练习要求用 finally 覆盖正常、受检异常和运行时异常。",
-    "filename": "PermitGuardExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson06/PermitGuardExercise.java#L17-L22",
-    "code": "    public <T> T call(Callable<T> action) throws Exception {\n        semaphore.acquire();\n        // TODO：使用 try/finally，异常时也必须归还许可。\n        T value = action.call();\n        semaphore.release();\n        return value;"
-  },
-  {
-    "key": "07-compound",
-    "tab": "复合竞态",
-    "path": "src/main/java/com/caesaemc/juc/lesson07/CompoundActionDemo.java",
-    "startLine": 15,
-    "endLine": 65,
-    "highlights": [
       22,
       23,
-      24,
-      26,
-      27,
-      40,
-      43,
-      51,
-      52,
-      53,
-      65
-    ],
-    "note": "containsKey 与 put 各自安全但组合不原子；computeIfAbsent 把同 key 的判断和建立合并到容器协议中。",
-    "filename": "CompoundActionDemo.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson07/CompoundActionDemo.java#L15-L65",
-    "code": "    public static Result brokenCheckThenAct() throws InterruptedException {\n        ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();\n        CountDownLatch bothChecked = new CountDownLatch(2);\n        CountDownLatch allowPut = new CountDownLatch(1);\n        AtomicInteger creators = new AtomicInteger();\n\n        Runnable task = () -> {\n            if (!map.containsKey(\"key\")) {\n                creators.incrementAndGet();\n                bothChecked.countDown();\n                try {\n                    allowPut.await();\n                    map.put(\"key\", Thread.currentThread().getName());\n                } catch (InterruptedException exception) {\n                    Thread.currentThread().interrupt();\n                }\n            }\n        };\n\n        Thread first = Thread.ofPlatform().name(\"creator-1\").start(task);\n        Thread second = Thread.ofPlatform().name(\"creator-2\").start(task);\n        bothChecked.await();\n        allowPut.countDown();\n        first.join();\n        second.join();\n        return new Result(creators.get(), map.size());\n    }\n\n    public static Result atomicCompute() throws InterruptedException {\n        ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();\n        AtomicInteger creators = new AtomicInteger();\n        CountDownLatch start = new CountDownLatch(1);\n\n        Runnable task = () -> {\n            try {\n                start.await();\n                map.computeIfAbsent(\"key\", key -> {\n                    creators.incrementAndGet();\n                    return Thread.currentThread().getName();\n                });\n            } catch (InterruptedException exception) {\n                Thread.currentThread().interrupt();\n            }\n        };\n\n        Thread first = Thread.ofPlatform().name(\"compute-1\").start(task);\n        Thread second = Thread.ofPlatform().name(\"compute-2\").start(task);\n        start.countDown();\n        first.join();\n        second.join();\n        return new Result(creators.get(), map.size());"
-  },
-  {
-    "key": "07-cache",
-    "tab": "原子缓存",
-    "path": "src/main/java/com/caesaemc/juc/lesson07/ConcurrentCache.java",
-    "startLine": 10,
-    "endLine": 29,
-    "highlights": [
-      12,
-      13,
-      19,
-      20,
-      23,
-      24
-    ],
-    "note": "映射函数应短小、无递归更新；远程慢加载需要进一步使用 Future 单飞、超时和失败清除。",
-    "filename": "ConcurrentCache.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson07/ConcurrentCache.java#L10-L29",
-    "code": "public final class ConcurrentCache<K, V> {\n\n    private final ConcurrentHashMap<K, V> values = new ConcurrentHashMap<>();\n    private final Function<K, V> loader;\n\n    public ConcurrentCache(Function<K, V> loader) {\n        this.loader = Objects.requireNonNull(loader, \"loader\");\n    }\n\n    public V get(K key) {\n        return values.computeIfAbsent(key, loader);\n    }\n\n    public void invalidate(K key) {\n        values.remove(key);\n    }\n\n    public int estimatedSize() {\n        return values.size();\n    }"
-  },
-  {
-    "key": "07-exercise",
-    "tab": "缓存练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson07/CacheExercise.java",
-    "startLine": 14,
-    "endLine": 26,
-    "highlights": [
-      15,
-      16,
-      17,
-      18,
-      19,
-      24,
-      25
-    ],
-    "note": "两个线程可以同时看到 null 并各自执行 load；练习目标是让同 key 的加载成为一个原子复合操作。",
-    "filename": "CacheExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson07/CacheExercise.java#L14-L26",
-    "code": "    public String get(String key) {\n        String value = values.get(key);\n        if (value == null) {\n            // TODO：改用 computeIfAbsent，并保证 loader 不递归修改同一个 key。\n            value = load(key);\n            values.put(key, value);\n        }\n        return value;\n    }\n\n    private String load(String key) {\n        loadCount.incrementAndGet();\n        return \"value-\" + key;"
-  },
-  {
-    "key": "08-pipeline",
-    "tab": "有界流水线",
-    "path": "src/main/java/com/caesaemc/juc/lesson08/BoundedPipeline.java",
-    "startLine": 18,
-    "endLine": 52,
-    "highlights": [
-      23,
-      30,
-      31,
-      32,
-      35,
-      40,
-      45,
-      46,
-      48,
-      49,
-      51
-    ],
-    "note": "ArrayBlockingQueue 同时传递数据和表达容量；put 在满载时把压力传回生产者，poison pill 明确结束消费者。",
-    "filename": "BoundedPipeline.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson08/BoundedPipeline.java#L18-L52",
-    "code": "    public static List<Integer> square(\n            List<Integer> inputs,\n            int capacity,\n            int consumerCount\n    ) throws InterruptedException {\n        BlockingQueue<Message> queue = new ArrayBlockingQueue<>(capacity);\n        List<Integer> outputs = Collections.synchronizedList(new ArrayList<>());\n        CountDownLatch consumersDone = new CountDownLatch(consumerCount);\n\n        for (int index = 0; index < consumerCount; index++) {\n            Thread.ofPlatform().name(\"pipeline-consumer-\" + index).start(() -> {\n                try {\n                    while (true) {\n                        Message message = queue.take();\n                        if (message.poison()) {\n                            return;\n                        }\n                        outputs.add(message.value() * message.value());\n                    }\n                } catch (InterruptedException exception) {\n                    Thread.currentThread().interrupt();\n                } finally {\n                    consumersDone.countDown();\n                }\n            });\n        }\n\n        for (Integer input : inputs) {\n            queue.put(new Message(input, false));\n        }\n        for (int index = 0; index < consumerCount; index++) {\n            queue.put(new Message(0, true));\n        }\n        consumersDone.await();\n        return List.copyOf(outputs);"
-  },
-  {
-    "key": "08-handoff",
-    "tab": "直接移交",
-    "path": "src/main/java/com/caesaemc/juc/lesson08/QueueSemanticsDemo.java",
-    "startLine": 16,
-    "endLine": 27,
-    "highlights": [
-      17,
-      18,
-      20,
-      25,
-      26
-    ],
-    "note": "SynchronousQueue 容量为零，生产者的 put 必须与消费者的 take 配对，不在队列中存储元素。",
-    "filename": "QueueSemanticsDemo.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson08/QueueSemanticsDemo.java#L16-L27",
-    "code": "    public static String directHandoff(String value) throws InterruptedException {\n        SynchronousQueue<String> queue = new SynchronousQueue<>();\n        Thread producer = Thread.ofPlatform().start(() -> {\n            try {\n                queue.put(value);\n            } catch (InterruptedException exception) {\n                Thread.currentThread().interrupt();\n            }\n        });\n        String received = queue.take();\n        producer.join();\n        return received;"
-  },
-  {
-    "key": "08-exercise",
-    "tab": "批处理练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson08/BatchingQueueExercise.java",
-    "startLine": 12,
-    "endLine": 21,
-    "highlights": [
-      12,
-      18,
-      19,
-      20
-    ],
-    "note": "先 take 阻塞取得第一个元素，再 drainTo 非阻塞补满批次，既不空转也不等待凑齐整个批次。",
-    "filename": "BatchingQueueExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson08/BatchingQueueExercise.java#L12-L21",
-    "code": "    private final BlockingQueue<T> queue;\n\n    public BatchingQueueExercise(BlockingQueue<T> queue) {\n        this.queue = queue;\n    }\n\n    public List<T> takeBatch(int maxBatchSize) throws InterruptedException {\n        // TODO：校验 maxBatchSize，take 一个，再 drainTo 最多 maxBatchSize - 1 个。\n        return new ArrayList<>();\n    }"
-  },
-  {
-    "key": "09-decision",
-    "tab": "execute 决策",
-    "path": "src/main/java/com/caesaemc/juc/lesson09/ThreadPoolDecisionModel.java",
-    "startLine": 11,
-    "endLine": 30,
-    "highlights": [
-      18,
-      21,
-      22,
-      24,
-      25,
-      27,
-      28,
-      30
-    ],
-    "note": "提交路径依次尝试核心 Worker、队列、非核心 Worker，最后拒绝；队列策略决定 max 是否真正参与。",
-    "filename": "ThreadPoolDecisionModel.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson09/ThreadPoolDecisionModel.java#L11-L30",
-    "code": "    public static Decision decide(\n            boolean running,\n            int workers,\n            int corePoolSize,\n            int maximumPoolSize,\n            boolean queueOfferSucceeds\n    ) {\n        if (!running) {\n            return Decision.REJECT;\n        }\n        if (workers < corePoolSize) {\n            return Decision.START_CORE_WORKER;\n        }\n        if (queueOfferSucceeds) {\n            return Decision.ENQUEUE;\n        }\n        if (workers < maximumPoolSize) {\n            return Decision.START_NON_CORE_WORKER;\n        }\n        return Decision.REJECT;"
-  },
-  {
-    "key": "09-saturation",
-    "tab": "饱和实验",
-    "path": "src/main/java/com/caesaemc/juc/lesson09/PoolSaturationDemo.java",
-    "startLine": 15,
-    "endLine": 50,
-    "highlights": [
-      16,
-      17,
-      18,
-      30,
-      31,
-      32,
-      37,
-      40,
-      41,
-      44,
-      45
-    ],
-    "note": "core=1、max=2、queue=1 时，前三个阻塞任务走完三条接收路径，第四个得到明确拒绝信号。",
-    "filename": "PoolSaturationDemo.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson09/PoolSaturationDemo.java#L15-L50",
-    "code": "    public static Result run() throws InterruptedException {\n        InstrumentedThreadPool pool = new InstrumentedThreadPool(1, 2, 1, \"saturation\");\n        CountDownLatch twoRunning = new CountDownLatch(2);\n        CountDownLatch release = new CountDownLatch(1);\n        Runnable blocker = () -> {\n            twoRunning.countDown();\n            try {\n                release.await();\n            } catch (InterruptedException exception) {\n                Thread.currentThread().interrupt();\n            }\n        };\n\n        boolean fourthRejected;\n        try {\n            pool.execute(blocker);\n            pool.execute(blocker);\n            pool.execute(blocker);\n            if (!twoRunning.await(5, TimeUnit.SECONDS)) {\n                throw new IllegalStateException(\"两个工作线程未启动\");\n            }\n            try {\n                pool.execute(() -> {\n                });\n                fourthRejected = false;\n            } catch (RejectedExecutionException expected) {\n                fourthRejected = true;\n            }\n        } finally {\n            release.countDown();\n            pool.shutdown();\n            if (!pool.awaitTermination(5, TimeUnit.SECONDS)) {\n                pool.shutdownNow();\n            }\n        }\n        return new Result(fourthRejected, pool.metrics());"
-  },
-  {
-    "key": "09-exercise",
-    "tab": "配置练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson09/PoolConfigExercise.java",
-    "startLine": 9,
-    "endLine": 17,
-    "highlights": [
-      14,
-      15,
-      16
-    ],
-    "note": "便捷工厂隐藏无界队列和拒绝语义；练习要求显式构造容量、线程名称与拒绝策略。",
-    "filename": "PoolConfigExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson09/PoolConfigExercise.java#L9-L17",
-    "code": "public final class PoolConfigExercise {\n\n    private PoolConfigExercise() {\n    }\n\n    public static ExecutorService create() {\n        // TODO：不要使用无界队列的便捷工厂。\n        return Executors.newFixedThreadPool(4);\n    }"
-  },
-  {
-    "key": "10-deadline",
-    "tab": "超时取消",
-    "path": "src/main/java/com/caesaemc/juc/lesson10/DeadlineTaskRunner.java",
-    "startLine": 22,
-    "endLine": 35,
-    "highlights": [
-      24,
-      27,
-      29,
-      30,
-      31,
-      32,
-      33
-    ],
-    "note": "TimeoutException 只说明调用者不再等待；cancel(true) 发出中断请求，任务是否真正停止取决于执行层协作。",
-    "filename": "DeadlineTaskRunner.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson10/DeadlineTaskRunner.java#L22-L35",
-    "code": "    public <T> TaskResult<T> call(Callable<T> task, Duration timeout)\n            throws InterruptedException {\n        Future<T> future = executor.submit(task);\n        try {\n            return TaskResult.success(\n                    future.get(timeout.toNanos(), TimeUnit.NANOSECONDS)\n            );\n        } catch (TimeoutException exception) {\n            boolean cancellationRequested = future.cancel(true);\n            return TaskResult.timedOut(cancellationRequested);\n        } catch (ExecutionException exception) {\n            return TaskResult.failure(exception.getCause());\n        }\n    }"
-  },
-  {
-    "key": "10-shutdown",
-    "tab": "优雅关闭",
-    "path": "src/main/java/com/caesaemc/juc/lesson10/GracefulExecutor.java",
-    "startLine": 16,
-    "endLine": 37,
-    "highlights": [
-      21,
-      23,
-      27,
-      28,
-      33,
       34,
       35
     ],
-    "note": "关闭协议先拒绝新任务并等待排空，超时再中断；调用线程被中断时还要恢复自己的中断状态。",
-    "filename": "GracefulExecutor.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson10/GracefulExecutor.java#L16-L37",
-    "code": "    public static ShutdownResult shutdownAndAwait(\n            ExecutorService executor,\n            Duration timeout\n    ) {\n        long timeoutNanos = timeout.toNanos();\n        executor.shutdown();\n        try {\n            if (executor.awaitTermination(timeoutNanos, TimeUnit.NANOSECONDS)) {\n                return new ShutdownResult(true, List.of(), false);\n            }\n\n            List<Runnable> neverStarted = executor.shutdownNow();\n            boolean terminated = executor.awaitTermination(\n                    timeoutNanos,\n                    TimeUnit.NANOSECONDS\n            );\n            return new ShutdownResult(terminated, List.copyOf(neverStarted), true);\n        } catch (InterruptedException exception) {\n            List<Runnable> neverStarted = executor.shutdownNow();\n            Thread.currentThread().interrupt();\n            return new ShutdownResult(false, List.copyOf(neverStarted), true);\n        }"
+    "note": "两个门闩稳定控制“先都读取，再都写回”，因此每次都能复现期望 2、实际 1。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course01/LostUpdateLab.java#L1-L45",
+    "code": "package com.caesaemc.juc.course01;\n\nimport java.util.concurrent.CountDownLatch;\n\n/**\n * 用两个同步点稳定构造一次丢失更新，而不是靠多跑几次碰运气。\n */\npublic final class LostUpdateLab {\n\n    private LostUpdateLab() {\n    }\n\n    public static int reproduce() throws InterruptedException {\n        State state = new State();\n        CountDownLatch bothThreadsRead = new CountDownLatch(2);\n        CountDownLatch allowWriteBack = new CountDownLatch(1);\n\n        Runnable increment = () -> {\n            int snapshot = state.value;\n            bothThreadsRead.countDown();\n            try {\n                allowWriteBack.await();\n                state.value = snapshot + 1;\n            } catch (InterruptedException exception) {\n                Thread.currentThread().interrupt();\n            }\n        };\n\n        Thread first = new Thread(increment, \"course01-counter-a\");\n        Thread second = new Thread(increment, \"course01-counter-b\");\n        first.start();\n        second.start();\n\n        bothThreadsRead.await();\n        allowWriteBack.countDown();\n        first.join();\n        second.join();\n        return state.value;\n    }\n\n    private static final class State {\n        private int value;\n    }\n}\n"
   },
   {
-    "key": "10-exercise",
-    "tab": "关闭练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson10/ShutdownExercise.java",
-    "startLine": 9,
-    "endLine": 18,
+    "key": "course01-hb",
+    "tab": "start / join",
+    "filename": "HappensBeforeLab.java",
+    "path": "src/main/java/com/caesaemc/juc/course01/HappensBeforeLab.java",
+    "startLine": 1,
+    "endLine": 34,
     "highlights": [
-      14,
-      15,
-      16,
-      17
-    ],
-    "note": "当前实现没有等待、强制阶段和总预算；练习需要完成 shutdown → await → shutdownNow 的完整协议。",
-    "filename": "ShutdownExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson10/ShutdownExercise.java#L9-L18",
-    "code": "public final class ShutdownExercise {\n\n    private ShutdownExercise() {\n    }\n\n    public static boolean shutdown(ExecutorService executor, Duration timeout) {\n        // TODO：实现有总超时意识的两阶段关闭。\n        executor.shutdown();\n        return executor.isTerminated();\n    }"
-  },
-  {
-    "key": "11-aggregate",
-    "tab": "多结果聚合",
-    "path": "src/main/java/com/caesaemc/juc/lesson11/AsyncAggregator.java",
-    "startLine": 25,
-    "endLine": 47,
-    "highlights": [
-      29,
-      31,
-      32,
-      33,
-      34,
-      35,
-      36,
-      40,
-      42,
-      43,
-      45,
-      46
-    ],
-    "note": "每个来源先转为 Outcome，失败不会抹掉其他成功结果；allOf 只协调完成，原始 Future 保留类型化数据。",
-    "filename": "AsyncAggregator.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson11/AsyncAggregator.java#L25-L47",
-    "code": "    public CompletableFuture<Aggregation> aggregate(\n            Map<String, Supplier<String>> sources,\n            Duration perSourceTimeout\n    ) {\n        Map<String, CompletableFuture<Outcome>> outcomes = new LinkedHashMap<>();\n        sources.forEach((name, source) -> {\n            CompletableFuture<Outcome> outcome = CompletableFuture\n                    .supplyAsync(source, executor)\n                    .orTimeout(perSourceTimeout.toNanos(), TimeUnit.NANOSECONDS)\n                    .handle((value, failure) -> failure == null\n                            ? Outcome.success(name, value)\n                            : Outcome.failure(name, unwrap(failure)));\n            outcomes.put(name, outcome);\n        });\n\n        CompletableFuture<?>[] all = outcomes.values()\n                .toArray(CompletableFuture[]::new);\n        return CompletableFuture.allOf(all)\n                .thenApply(ignored -> {\n                    List<Outcome> ordered = new ArrayList<>();\n                    outcomes.values().forEach(future -> ordered.add(future.join()));\n                    return new Aggregation(List.copyOf(ordered));\n                });"
-  },
-  {
-    "key": "11-composition",
-    "tab": "依赖与合并",
-    "path": "src/main/java/com/caesaemc/juc/lesson11/CompositionDemo.java",
-    "startLine": 14,
-    "endLine": 27,
-    "highlights": [
-      19,
-      22,
-      26
-    ],
-    "note": "依赖异步调用使用 thenCompose 展平；两个独立上游并行启动后使用 thenCombine 合并。",
-    "filename": "CompositionDemo.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson11/CompositionDemo.java#L14-L27",
-    "code": "    public static CompletableFuture<String> dependent(\n            String userId,\n            Function<String, CompletableFuture<String>> loadUser,\n            Function<String, CompletableFuture<String>> loadOrders\n    ) {\n        return loadUser.apply(userId).thenCompose(loadOrders);\n    }\n\n    public static CompletableFuture<String> independent(\n            CompletableFuture<String> profile,\n            CompletableFuture<String> preference\n    ) {\n        return profile.thenCombine(preference, (left, right) -> left + \":\" + right);\n    }"
-  },
-  {
-    "key": "11-exercise",
-    "tab": "编排练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson11/CompositionExercise.java",
-    "startLine": 14,
-    "endLine": 29,
-    "highlights": [
-      19,
-      20,
-      23,
-      28,
-      29
-    ],
-    "note": "thenApply 返回嵌套 Future；练习要求 loadFlat 返回单层 CompletableFuture，并保留正确的数据依赖。",
-    "filename": "CompositionExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson11/CompositionExercise.java#L14-L29",
-    "code": "    public static CompletableFuture<CompletableFuture<String>> loadNested(\n            String id,\n            Function<String, CompletableFuture<String>> loadUser,\n            Function<String, CompletableFuture<String>> loadDetail\n    ) {\n        // TODO：新增返回 CompletableFuture<String> 的 loadFlat，使用 thenCompose。\n        return loadUser.apply(id).thenApply(loadDetail);\n    }\n\n    public static CompletableFuture<String> loadFlat(\n            String id,\n            Function<String, CompletableFuture<String>> loadUser,\n            Function<String, CompletableFuture<String>> loadDetail\n    ) {\n        // TODO：使用 thenCompose 展平依赖调用。\n        throw new UnsupportedOperationException(\"请完成 loadFlat\");"
-  },
-  {
-    "key": "12-forkjoin",
-    "tab": "分治任务",
-    "path": "src/main/java/com/caesaemc/juc/lesson12/ParallelSumTask.java",
-    "startLine": 26,
-    "endLine": 42,
-    "highlights": [
-      28,
-      29,
-      30,
-      33,
-      36,
-      37,
-      38,
-      39,
-      40,
-      41
-    ],
-    "note": "小任务顺序计算；大任务 fork 一个分支、当前线程 compute 另一个，再 join 合并，减少无效调度。",
-    "filename": "ParallelSumTask.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson12/ParallelSumTask.java#L26-L42",
-    "code": "    @Override\n    protected Long compute() {\n        if (end - start <= THRESHOLD) {\n            long sum = 0;\n            for (int index = start; index < end; index++) {\n                sum += values[index];\n            }\n            return sum;\n        }\n\n        int middle = (start + end) >>> 1;\n        ParallelSumTask left = new ParallelSumTask(values, start, middle);\n        ParallelSumTask right = new ParallelSumTask(values, middle, end);\n        left.fork();\n        long rightResult = right.compute();\n        return left.join() + rightResult;\n    }"
-  },
-  {
-    "key": "12-blocker",
-    "tab": "阻塞补偿",
-    "path": "src/main/java/com/caesaemc/juc/lesson12/ManagedBlockerDemo.java",
-    "startLine": 14,
-    "endLine": 46,
-    "highlights": [
-      15,
-      16,
-      20,
-      29,
-      30,
-      33,
-      36,
-      41,
-      42,
-      45
-    ],
-    "note": "ManagedBlocker 把即将阻塞的信息告诉 ForkJoinPool，使其有机会评估补偿；它不会替代超时或资源限流。",
-    "filename": "ManagedBlockerDemo.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson12/ManagedBlockerDemo.java#L14-L46",
-    "code": "    public static boolean managedSleep(Duration duration) throws InterruptedException {\n        SleepBlocker blocker = new SleepBlocker(duration);\n        ForkJoinPool.managedBlock(blocker);\n        return blocker.isReleasable();\n    }\n\n    private static final class SleepBlocker implements ForkJoinPool.ManagedBlocker {\n        private final long deadlineNanos;\n        private boolean done;\n\n        private SleepBlocker(Duration duration) {\n            deadlineNanos = System.nanoTime() + duration.toNanos();\n        }\n\n        @Override\n        public boolean block() throws InterruptedException {\n            while (!isReleasable()) {\n                long remaining = deadlineNanos - System.nanoTime();\n                if (remaining > 0) {\n                    Thread.sleep(Duration.ofNanos(remaining));\n                }\n            }\n            done = true;\n            return true;\n        }\n\n        @Override\n        public boolean isReleasable() {\n            if (!done && System.nanoTime() >= deadlineNanos) {\n                done = true;\n            }\n            return done;\n        }"
-  },
-  {
-    "key": "12-exercise",
-    "tab": "最大值练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson12/MaxTaskExercise.java",
-    "startLine": 24,
-    "endLine": 28,
-    "highlights": [
-      25,
-      26,
-      27
-    ],
-    "note": "练习需要补齐阈值、左右拆分、fork/compute/join 与合并，并拒绝空数组。",
-    "filename": "MaxTaskExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson12/MaxTaskExercise.java#L24-L28",
-    "code": "    @Override\n    protected Integer compute() {\n        // TODO：小任务顺序求最大值，大任务一分为二并合并结果。\n        return values[start];\n    }"
-  },
-  {
-    "key": "13-virtual",
-    "tab": "每任务一线程",
-    "path": "src/main/java/com/caesaemc/juc/lesson13/VirtualThreadAggregator.java",
-    "startLine": 20,
-    "endLine": 43,
-    "highlights": [
-      24,
-      25,
-      27,
-      31,
-      32,
-      33,
-      36,
-      37,
-      38,
-      39,
-      42
-    ],
-    "note": "虚拟线程承载大量独立阻塞任务，invokeAll 的同一 timeout 约束整组任务，取消结果被显式保留。",
-    "filename": "VirtualThreadAggregator.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson13/VirtualThreadAggregator.java#L20-L43",
-    "code": "    public static <T> List<Outcome<T>> invokeAll(\n            List<? extends Callable<T>> tasks,\n            Duration timeout\n    ) throws InterruptedException {\n        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            List<Future<T>> futures = executor.invokeAll(\n                    tasks,\n                    timeout.toNanos(),\n                    TimeUnit.NANOSECONDS\n            );\n            List<Outcome<T>> outcomes = new ArrayList<>(futures.size());\n            for (Future<T> future : futures) {\n                if (future.isCancelled()) {\n                    outcomes.add(Outcome.cancelledOutcome());\n                    continue;\n                }\n                try {\n                    outcomes.add(Outcome.success(future.get()));\n                } catch (ExecutionException exception) {\n                    outcomes.add(Outcome.failure(exception.getCause()));\n                }\n            }\n            return List.copyOf(outcomes);\n        }"
-  },
-  {
-    "key": "13-capacity",
-    "tab": "资源容量",
-    "path": "src/main/java/com/caesaemc/juc/lesson13/LimitedVirtualThreadService.java",
-    "startLine": 24,
-    "endLine": 46,
-    "highlights": [
-      25,
-      28,
-      29,
-      30,
-      31,
-      32,
-      34,
-      35,
-      36,
-      42,
-      43
-    ],
-    "note": "虚拟线程数量与外部资源容量分离：每任务一个线程，Semaphore 单独限制真正的在途资源。",
-    "filename": "LimitedVirtualThreadService.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson13/LimitedVirtualThreadService.java#L24-L46",
-    "code": "    public <T> List<T> invoke(List<? extends Callable<T>> calls) throws Exception {\n        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            List<Future<T>> futures = new ArrayList<>();\n            for (Callable<T> call : calls) {\n                futures.add(executor.submit(() -> {\n                    permits.acquire();\n                    int current = active.incrementAndGet();\n                    maxObserved.accumulateAndGet(current, Math::max);\n                    try {\n                        return call.call();\n                    } finally {\n                        active.decrementAndGet();\n                        permits.release();\n                    }\n                }));\n            }\n\n            List<T> results = new ArrayList<>();\n            for (Future<T> future : futures) {\n                results.add(future.get());\n            }\n            return List.copyOf(results);\n        }"
-  },
-  {
-    "key": "13-exercise",
-    "tab": "迁移练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson13/VirtualResourceExercise.java",
-    "startLine": 16,
-    "endLine": 26,
-    "highlights": [
-      16,
-      17,
-      18,
-      21,
-      25,
-      26
-    ],
-    "note": "破损版本既泄漏执行器，也没有资源背压；练习要求限定生命周期并用 Semaphore 保护下游。",
-    "filename": "VirtualResourceExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson13/VirtualResourceExercise.java#L16-L26",
-    "code": "    public static <T> List<Future<T>> submitAllBroken(List<? extends Callable<T>> calls) {\n        var executor = Executors.newVirtualThreadPerTaskExecutor();\n        return calls.stream().map(executor::submit).toList();\n    }\n\n    public static <T> List<T> invokeAll(\n            List<? extends Callable<T>> calls,\n            int resourceCapacity\n    ) throws Exception {\n        // TODO：限定 executor 生命周期，并使用 Semaphore 限制资源并发。\n        throw new UnsupportedOperationException(\"请完成 invokeAll\");"
-  },
-  {
-    "key": "14-deadline",
-    "tab": "共享预算",
-    "path": "src/main/java/com/caesaemc/juc/lesson14/DeadlineBudget.java",
-    "startLine": 17,
-    "endLine": 51,
-    "highlights": [
-      23,
-      24,
-      27,
-      31,
-      38,
-      39,
-      42,
-      46,
-      51
-    ],
-    "note": "入口只计算一次绝对 deadline；每一步从单调时钟重新计算剩余时间，并与单步上限取最小值。",
-    "filename": "DeadlineBudget.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson14/DeadlineBudget.java#L17-L51",
-    "code": "    public static DeadlineBudget after(Duration timeout) {\n        Objects.requireNonNull(timeout, \"timeout\");\n        if (timeout.isNegative() || timeout.isZero()) {\n            throw new IllegalArgumentException(\"timeout 必须大于 0\");\n        }\n\n        long now = System.nanoTime();\n        long timeoutNanos = timeout.toNanos();\n        long deadline;\n        try {\n            deadline = Math.addExact(now, timeoutNanos);\n        } catch (ArithmeticException ignored) {\n            deadline = Long.MAX_VALUE;\n        }\n        return new DeadlineBudget(deadline);\n    }\n\n    public Duration remaining() {\n        return Duration.ofNanos(remainingNanos());\n    }\n\n    public long remainingNanos() {\n        return Math.max(0L, deadlineNanos - System.nanoTime());\n    }\n\n    public boolean expired() {\n        return remainingNanos() == 0L;\n    }\n\n    public Duration cap(Duration requestedTimeout) {\n        Objects.requireNonNull(requestedTimeout, \"requestedTimeout\");\n        if (requestedTimeout.isNegative() || requestedTimeout.isZero()) {\n            throw new IllegalArgumentException(\"requestedTimeout 必须大于 0\");\n        }\n        return Duration.ofNanos(Math.min(remainingNanos(), requestedTimeout.toNanos()));"
-  },
-  {
-    "key": "14-memoizer",
-    "tab": "单飞缓存",
-    "path": "src/main/java/com/caesaemc/juc/lesson14/Memoizer.java",
-    "startLine": 18,
-    "endLine": 41,
-    "highlights": [
-      22,
-      23,
-      24,
-      25,
-      26,
-      27,
-      29,
-      34,
-      35,
-      36,
-      37,
-      38,
-      39
-    ],
-    "note": "缓存 Future 让并发调用者共享正在进行的计算；失败或取消后条件删除，下一次调用可以重试。",
-    "filename": "Memoizer.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson14/Memoizer.java#L18-L41",
-    "code": "    public V compute(K key, Callable<V> loader) throws Exception {\n        Objects.requireNonNull(key, \"key\");\n        Objects.requireNonNull(loader, \"loader\");\n\n        while (true) {\n            Future<V> future = cache.get(key);\n            if (future == null) {\n                FutureTask<V> candidate = new FutureTask<>(loader);\n                future = cache.putIfAbsent(key, candidate);\n                if (future == null) {\n                    future = candidate;\n                    candidate.run();\n                }\n            }\n\n            try {\n                return future.get();\n            } catch (CancellationException exception) {\n                cache.remove(key, future);\n            } catch (ExecutionException exception) {\n                cache.remove(key, future);\n                throw rethrow(exception.getCause());\n            }\n        }"
-  },
-  {
-    "key": "14-exercise",
-    "tab": "Bulkhead 练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson14/BulkheadExercise.java",
-    "startLine": 9,
-    "endLine": 22,
-    "highlights": [
-      11,
-      12,
-      15,
-      17,
-      18,
-      20,
-      21
-    ],
-    "note": "练习把容量、限时等待、超时降级和许可释放写进同一个调用协议，并保留中断语义。",
-    "filename": "BulkheadExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson14/BulkheadExercise.java#L9-L22",
-    "code": "public final class BulkheadExercise {\n\n    public BulkheadExercise(int capacity) {\n        // TODO：创建公平 Semaphore，并校验 capacity。\n    }\n\n    public <T> T call(\n            Callable<T> action,\n            Duration timeout,\n            T fallback\n    ) throws Exception {\n        // TODO：限时获取许可，在 finally 中释放；超时时返回 fallback。\n        return action.call();\n    }"
-  },
-  {
-    "key": "15-harness",
-    "tab": "确定性测试",
-    "path": "src/main/java/com/caesaemc/juc/lesson15/ConcurrentTestHarness.java",
-    "startLine": 25,
-    "endLine": 74,
-    "highlights": [
-      34,
-      35,
-      36,
-      45,
-      46,
-      47,
-      52,
-      53,
-      56,
-      60,
-      61,
-      62,
-      66,
-      67,
-      70,
-      73
-    ],
-    "note": "ready/start 两个门闩建立可控时序，准备和结果收集共享一个 deadline，任何失败都会取消其余 actor。",
-    "filename": "ConcurrentTestHarness.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson15/ConcurrentTestHarness.java#L25-L74",
-    "code": "    public static <T> List<T> runTogether(\n            List<? extends Callable<T>> actors,\n            Duration timeout\n    ) throws Exception {\n        Objects.requireNonNull(actors, \"actors\");\n        if (actors.isEmpty()) {\n            return List.of();\n        }\n\n        DeadlineBudget budget = DeadlineBudget.after(timeout);\n        CountDownLatch ready = new CountDownLatch(actors.size());\n        CountDownLatch start = new CountDownLatch(1);\n\n        try (var executor = Executors.newFixedThreadPool(\n                actors.size(),\n                Thread.ofPlatform().name(\"test-actor-\", 0).factory()\n        )) {\n            List<Future<T>> futures = new ArrayList<>(actors.size());\n            for (Callable<T> actor : actors) {\n                Objects.requireNonNull(actor, \"actor\");\n                futures.add(executor.submit(() -> {\n                    ready.countDown();\n                    start.await();\n                    return actor.call();\n                }));\n            }\n\n            if (!ready.await(budget.remainingNanos(), TimeUnit.NANOSECONDS)) {\n                futures.forEach(future -> future.cancel(true));\n                throw new TimeoutException(\"actor 未能在 deadline 前全部就绪\");\n            }\n            start.countDown();\n\n            List<T> results = new ArrayList<>(futures.size());\n            try {\n                for (Future<T> future : futures) {\n                    results.add(future.get(\n                            budget.remainingNanos(),\n                            TimeUnit.NANOSECONDS\n                    ));\n                }\n            } catch (InterruptedException | TimeoutException exception) {\n                futures.forEach(future -> future.cancel(true));\n                throw exception;\n            } catch (ExecutionException exception) {\n                futures.forEach(future -> future.cancel(true));\n                throw rethrow(exception.getCause());\n            }\n            return List.copyOf(results);\n        }"
-  },
-  {
-    "key": "15-diagnostic",
-    "tab": "堆积故障",
-    "path": "src/main/java/com/caesaemc/juc/lesson15/DiagnosticFaultLab.java",
-    "startLine": 62,
-    "endLine": 89,
-    "highlights": [
-      63,
-      64,
-      65,
-      66,
-      69,
-      70,
-      71,
-      72,
-      76,
-      77,
-      80,
-      82,
-      86,
-      87
-    ],
-    "note": "两个 worker 被锁存器占满，后续 80 个任务稳定堆积；线程 dump 与 metrics 共同形成根因证据。",
-    "filename": "DiagnosticFaultLab.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson15/DiagnosticFaultLab.java#L62-L89",
-    "code": "    private static void runBacklog(Duration duration) throws Exception {\n        InstrumentedThreadPool pool = new InstrumentedThreadPool(\n                2,\n                2,\n                100,\n                \"backlog\"\n        );\n        CountDownLatch release = new CountDownLatch(1);\n        for (int index = 0; index < 2; index++) {\n            pool.submit(() -> {\n                release.await();\n                return null;\n            });\n        }\n        for (int index = 0; index < 80; index++) {\n            pool.submit(() -> \"queued\");\n        }\n        try {\n            long deadline = System.nanoTime() + duration.toNanos();\n            while (System.nanoTime() < deadline) {\n                System.out.println(pool.metrics());\n                Thread.sleep(Math.min(1_000, duration.toMillis()));\n            }\n        } finally {\n            release.countDown();\n            pool.shutdownNow();\n            pool.awaitTermination(2, TimeUnit.SECONDS);\n        }"
-  },
-  {
-    "key": "15-exercise",
-    "tab": "竞态练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson15/DeterministicRaceExercise.java",
-    "startLine": 6,
-    "endLine": 14,
-    "highlights": [
-      11,
-      12,
-      13
-    ],
-    "note": "目标不是增加随机概率，而是用两个阶段的同步点稳定构造“先都读，再都写”的合法交错。",
-    "filename": "DeterministicRaceExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson15/DeterministicRaceExercise.java#L6-L14",
-    "code": "public final class DeterministicRaceExercise {\n\n    private DeterministicRaceExercise() {\n    }\n\n    public static int exposeLostUpdate() throws Exception {\n        // TODO：用两个阶段的屏障控制“读取”和“写入”，最终稳定返回 1。\n        throw new UnsupportedOperationException(\"请完成 exposeLostUpdate\");\n    }"
-  },
-  {
-    "key": "16-engine",
-    "tab": "聚合主线",
-    "path": "src/main/java/com/caesaemc/juc/lesson16/AbstractAggregationService.java",
-    "startLine": 57,
-    "endLine": 148,
-    "highlights": [
-      65,
-      66,
-      69,
-      72,
-      73,
-      74,
-      76,
-      88,
-      89,
-      95,
-      97,
-      113,
-      133,
-      135,
-      136,
-      137,
-      145
-    ],
-    "note": "一次请求共享 DeadlineBudget；每个下游独立定时取消，提交失败进入 REJECTED，结果按原输入顺序收集。",
-    "filename": "AbstractAggregationService.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson16/AbstractAggregationService.java#L57-L148",
-    "code": "    public final AggregationResponse aggregate(\n            List<DownstreamCall> calls,\n            Duration overallTimeout\n    ) throws InterruptedException {\n        ensureOpen();\n        validateCalls(calls);\n\n        long aggregationStarted = System.nanoTime();\n        DeadlineBudget budget = DeadlineBudget.after(overallTimeout);\n        CallOutcome[] outcomes = new CallOutcome[calls.size()];\n        List<PendingCall> pending = new ArrayList<>(calls.size());\n\n        for (int index = 0; index < calls.size(); index++) {\n            DownstreamCall call = calls.get(index);\n            long submittedAt = System.nanoTime();\n            long timeoutNanos = Math.min(\n                    call.timeout().toNanos(),\n                    budget.remainingNanos()\n            );\n            if (timeoutNanos == 0L) {\n                CallOutcome outcome = CallOutcome.timedOut(\n                        call,\n                        elapsedSince(submittedAt)\n                );\n                outcomes[index] = outcome;\n                metrics.terminal(outcome.status());\n                continue;\n            }\n\n            AtomicBoolean timeoutTriggered = new AtomicBoolean();\n            try {\n                Future<CallOutcome> future = workers.submit(\n                        () -> invokeDownstream(call, submittedAt)\n                );\n                metrics.submitted();\n\n                ScheduledFuture<?> timer;\n                try {\n                    timer = timeoutScheduler.schedule(() -> {\n                        timeoutTriggered.set(true);\n                        if (!future.cancel(true)) {\n                            timeoutTriggered.set(false);\n                        }\n                    }, timeoutNanos, TimeUnit.NANOSECONDS);\n                } catch (RejectedExecutionException exception) {\n                    future.cancel(true);\n                    CallOutcome outcome = CallOutcome.rejected(\n                            call,\n                            exception,\n                            elapsedSince(submittedAt)\n                    );\n                    outcomes[index] = outcome;\n                    metrics.terminal(outcome.status());\n                    continue;\n                }\n\n                pending.add(new PendingCall(\n                        index,\n                        call,\n                        submittedAt,\n                        future,\n                        timer,\n                        timeoutTriggered,\n                        new AtomicBoolean()\n                ));\n            } catch (RejectedExecutionException exception) {\n                CallOutcome outcome = CallOutcome.rejected(\n                        call,\n                        exception,\n                        elapsedSince(submittedAt)\n                );\n                outcomes[index] = outcome;\n                metrics.terminal(outcome.status());\n            }\n        }\n\n        try {\n            for (PendingCall call : pending) {\n                CallOutcome outcome = await(call, budget);\n                call.timer().cancel(false);\n                outcomes[call.index()] = outcome;\n                recordOnce(call, outcome.status());\n            }\n        } catch (InterruptedException exception) {\n            cancelPending(pending);\n            throw exception;\n        }\n\n        return new AggregationResponse(\n                Arrays.asList(outcomes),\n                elapsedSince(aggregationStarted)\n        );"
-  },
-  {
-    "key": "16-platform",
-    "tab": "平台线程",
-    "path": "src/main/java/com/caesaemc/juc/lesson16/PlatformAggregationService.java",
-    "startLine": 25,
-    "endLine": 42,
-    "highlights": [
-      34,
-      35,
-      36,
-      39,
-      40,
-      41
-    ],
-    "note": "固定 worker 控制平台线程，有界队列控制排队内存，AbortPolicy 把满载变成可观察的背压信号。",
-    "filename": "PlatformAggregationService.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson16/PlatformAggregationService.java#L25-L42",
-    "code": "    private static ThreadPoolExecutor createExecutor(\n            int workers,\n            int queueCapacity\n    ) {\n        if (workers <= 0 || queueCapacity <= 0) {\n            throw new IllegalArgumentException(\n                    \"workers 和 queueCapacity 必须大于 0\"\n            );\n        }\n        return new ThreadPoolExecutor(\n                workers,\n                workers,\n                0L,\n                TimeUnit.MILLISECONDS,\n                new ArrayBlockingQueue<>(queueCapacity),\n                Thread.ofPlatform().name(\"platform-downstream-\", 0).factory(),\n                new ThreadPoolExecutor.AbortPolicy()\n        );"
-  },
-  {
-    "key": "16-virtual",
-    "tab": "虚拟线程",
-    "path": "src/main/java/com/caesaemc/juc/lesson16/VirtualAggregationService.java",
-    "startLine": 8,
-    "endLine": 18,
-    "highlights": [
-      11,
       13,
+      20,
+      21,
+      22
+    ],
+    "note": "start 负责把 input 交给工作线程，join 负责让主线程看到 worker 完成前的 output 写入。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course01/HappensBeforeLab.java#L1-L34",
+    "code": "package com.caesaemc.juc.course01;\n\n/**\n * start 把调用线程之前的写交给工作线程，join 把工作线程的写带回调用线程。\n */\npublic final class HappensBeforeLab {\n\n    private HappensBeforeLab() {\n    }\n\n    public static Result run() throws InterruptedException {\n        State state = new State();\n        state.input = 42;\n\n        Thread worker = new Thread(() -> {\n            state.observedInput = state.input;\n            state.output = state.input * 2;\n        }, \"course01-happens-before\");\n\n        worker.start();\n        worker.join();\n        return new Result(state.observedInput, state.output);\n    }\n\n    private static final class State {\n        private int input;\n        private int observedInput;\n        private int output;\n    }\n\n    public record Result(int observedInput, int outputAfterJoin) {\n    }\n}\n"
+  },
+  {
+    "key": "course01-exercise",
+    "tab": "计数器练习",
+    "filename": "Course01Exercise.java",
+    "path": "src/main/java/com/caesaemc/juc/course01/Course01Exercise.java",
+    "startLine": 1,
+    "endLine": 18,
+    "highlights": [
+      10,
+      14
+    ],
+    "note": "increment 与 value 使用同一把对象监视器，读写遵循同一个同步协议。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course01/Course01Exercise.java#L1-L18",
+    "code": "package com.caesaemc.juc.course01;\n\n/**\n * 第一课练习参考实现：不用原子类，使用同一把监视器保护读写。\n */\npublic final class Course01Exercise {\n\n    private int value;\n\n    public synchronized void increment() {\n        value++;\n    }\n\n    public synchronized int value() {\n        return value;\n    }\n}\n"
+  },
+  {
+    "key": "course02-visibility",
+    "tab": "可见性",
+    "filename": "VisibilityLab.java",
+    "path": "src/main/java/com/caesaemc/juc/course02/VisibilityLab.java",
+    "startLine": 1,
+    "endLine": 37,
+    "highlights": [
+      10,
+      19,
+      28,
+      30
+    ],
+    "note": "volatile 停止标志适合一写多读的独立状态；join 再验收线程已经真正结束。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course02/VisibilityLab.java#L1-L37",
+    "code": "package com.caesaemc.juc.course02;\n\nimport java.time.Duration;\n\n/**\n * volatile 适合发布独立状态，例如停止标志；它不提供复合更新的互斥。\n */\npublic final class VisibilityLab implements AutoCloseable {\n\n    private volatile boolean running;\n    private Thread worker;\n\n    public void start() {\n        if (running) {\n            throw new IllegalStateException(\"任务已经启动\");\n        }\n        running = true;\n        worker = new Thread(() -> {\n            while (running) {\n                Thread.onSpinWait();\n            }\n        }, \"course02-visibility\");\n        worker.start();\n    }\n\n    @Override\n    public void close() throws InterruptedException {\n        running = false;\n        if (worker != null) {\n            worker.join(Duration.ofSeconds(1).toMillis());\n            if (worker.isAlive()) {\n                throw new IllegalStateException(\"工作线程没有观察到停止标志\");\n            }\n        }\n    }\n}\n"
+  },
+  {
+    "key": "course02-publication",
+    "tab": "安全发布",
+    "filename": "SafePublicationLab.java",
+    "path": "src/main/java/com/caesaemc/juc/course02/SafePublicationLab.java",
+    "startLine": 1,
+    "endLine": 39,
+    "highlights": [
       14,
+      17,
+      22,
+      27,
+      31
+    ],
+    "note": "writer 先构造不可变 Settings，再替换一次 volatile 引用；reader 一次只取得一个完整版本。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course02/SafePublicationLab.java#L1-L39",
+    "code": "package com.caesaemc.juc.course02;\n\nimport java.util.Objects;\n\n/**\n * 先构造不可变快照，再通过一次 volatile 引用写完成安全发布。\n */\npublic final class SafePublicationLab {\n\n    private SafePublicationLab() {\n    }\n\n    public static final class ConfigRepository {\n        private volatile Settings current;\n\n        public ConfigRepository(Settings initial) {\n            current = Objects.requireNonNull(initial, \"initial\");\n        }\n\n        public Settings snapshot() {\n            // 读一次共享入口，后续字段都来自同一个版本。\n            return current;\n        }\n\n        public void update(Settings settings) {\n            // settings 已完整构造；这一步只替换引用，不逐字段修改旧对象。\n            current = Objects.requireNonNull(settings, \"settings\");\n        }\n    }\n\n    public record Settings(int version, int timeoutMillis, int retries) {\n        public Settings {\n            if (version < 0 || timeoutMillis <= 0 || retries < 0) {\n                throw new IllegalArgumentException(\"配置值不合法\");\n            }\n        }\n    }\n}\n"
+  },
+  {
+    "key": "course02-dcl",
+    "tab": "DCL 单例",
+    "filename": "DclSingleton.java",
+    "path": "src/main/java/com/caesaemc/juc/course02/DclSingleton.java",
+    "startLine": 1,
+    "endLine": 34,
+    "highlights": [
+      8,
+      19,
+      22,
+      23
+    ],
+    "note": "锁内二次检查防止重复创建，volatile 防止其他线程观察到未完整构造的实例。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course02/DclSingleton.java#L1-L34",
+    "code": "package com.caesaemc.juc.course02;\n\n/**\n * 正确的双重检查锁：锁内防止重复创建，volatile 负责发布完整对象。\n */\npublic final class DclSingleton {\n\n    private static volatile DclSingleton instance;\n\n    private final long createdAtNanos;\n\n    private DclSingleton() {\n        createdAtNanos = System.nanoTime();\n    }\n\n    public static DclSingleton instance() {\n        DclSingleton local = instance;\n        if (local == null) {\n            synchronized (DclSingleton.class) {\n                local = instance;\n                if (local == null) {\n                    local = new DclSingleton();\n                    instance = local;\n                }\n            }\n        }\n        return local;\n    }\n\n    public long createdAtNanos() {\n        return createdAtNanos;\n    }\n}\n"
+  },
+  {
+    "key": "course02-exercise",
+    "tab": "序号练习",
+    "filename": "Course02Exercise.java",
+    "path": "src/main/java/com/caesaemc/juc/course02/Course02Exercise.java",
+    "startLine": 1,
+    "endLine": 18,
+    "highlights": [
+      10,
+      11,
+      14
+    ],
+    "note": "多个方法维护同一个不变量时，要使用同一把锁，而不是只给字段添加 volatile。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course02/Course02Exercise.java#L1-L18",
+    "code": "package com.caesaemc.juc.course02;\n\n/**\n * 第二课练习参考实现：next 和 current 必须使用同一把锁。\n */\npublic final class Course02Exercise {\n\n    private long sequence;\n\n    public synchronized long next() {\n        return ++sequence;\n    }\n\n    public synchronized long current() {\n        return sequence;\n    }\n}\n"
+  },
+  {
+    "key": "course03-termination",
+    "tab": "两阶段终止",
+    "filename": "TwoPhaseTerminator.java",
+    "path": "src/main/java/com/caesaemc/juc/course03/TwoPhaseTerminator.java",
+    "startLine": 1,
+    "endLine": 68,
+    "highlights": [
+      10,
+      42,
+      46,
+      48,
+      51,
+      61,
+      62
+    ],
+    "note": "interrupt 是停止请求；任务恢复中断、离开循环、在 finally 收尾，调用方再用 join 验收。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course03/TwoPhaseTerminator.java#L1-L68",
+    "code": "package com.caesaemc.juc.course03;\n\nimport java.time.Duration;\nimport java.util.concurrent.CountDownLatch;\nimport java.util.concurrent.TimeUnit;\nimport java.util.concurrent.atomic.AtomicBoolean;\nimport java.util.concurrent.atomic.AtomicInteger;\n\n/**\n * 第一阶段用 interrupt 请求停止，第二阶段由任务在 finally 中完成收尾。\n */\npublic final class TwoPhaseTerminator implements AutoCloseable {\n\n    private final AtomicBoolean started = new AtomicBoolean();\n    private final AtomicInteger cycles = new AtomicInteger();\n    private final CountDownLatch running = new CountDownLatch(1);\n    private final CountDownLatch stopped = new CountDownLatch(1);\n    private final Thread worker = new Thread(this::runLoop, \"course03-terminator\");\n\n    public void start() {\n        if (!started.compareAndSet(false, true)) {\n            throw new IllegalStateException(\"任务只能启动一次\");\n        }\n        worker.start();\n    }\n\n    public boolean awaitRunning(Duration timeout) throws InterruptedException {\n        return running.await(timeout.toMillis(), TimeUnit.MILLISECONDS);\n    }\n\n    public int cycles() {\n        return cycles.get();\n    }\n\n    public boolean isStopped() {\n        return stopped.getCount() == 0;\n    }\n\n    private void runLoop() {\n        running.countDown();\n        try {\n            while (!Thread.currentThread().isInterrupted()) {\n                try {\n                    TimeUnit.MILLISECONDS.sleep(5);\n                    cycles.incrementAndGet();\n                } catch (InterruptedException exception) {\n                    // sleep 清除了标志；恢复标志，循环条件才能看到停止请求。\n                    Thread.currentThread().interrupt();\n                }\n            }\n        } finally {\n            stopped.countDown();\n        }\n    }\n\n    @Override\n    public void close() throws InterruptedException {\n        if (!started.get()) {\n            return;\n        }\n        worker.interrupt();\n        worker.join(Duration.ofSeconds(1).toMillis());\n        if (worker.isAlive()) {\n            throw new IllegalStateException(\"工作线程没有按时停止\");\n        }\n    }\n}\n"
+  },
+  {
+    "key": "course03-cas",
+    "tab": "CAS 循环",
+    "filename": "CasCounter.java",
+    "path": "src/main/java/com/caesaemc/juc/course03/CasCounter.java",
+    "startLine": 1,
+    "endLine": 35,
+    "highlights": [
+      7,
+      27,
+      28,
+      32
+    ],
+    "note": "CAS 失败说明 observed 已过期，必须重新读取并重新计算；成功点就是这次递增的线性化点。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course03/CasCounter.java#L1-L35",
+    "code": "package com.caesaemc.juc.course03;\n\nimport java.lang.invoke.MethodHandles;\nimport java.lang.invoke.VarHandle;\n\n/**\n * CAS 的线性化点是 compareAndSet 成功的瞬间；失败线程重新读取后再计算。\n */\npublic final class CasCounter {\n\n    private static final VarHandle VALUE;\n\n    static {\n        try {\n            VALUE = MethodHandles.lookup().findVarHandle(CasCounter.class, \"value\", int.class);\n        } catch (ReflectiveOperationException exception) {\n            throw new ExceptionInInitializerError(exception);\n        }\n    }\n\n    @SuppressWarnings(\"FieldMayBeFinal\")\n    private volatile int value;\n\n    public void increment() {\n        int observed;\n        do {\n            observed = (int) VALUE.getVolatile(this);\n        } while (!VALUE.compareAndSet(this, observed, observed + 1));\n    }\n\n    public int value() {\n        return (int) VALUE.getVolatile(this);\n    }\n}\n"
+  },
+  {
+    "key": "course03-aqs",
+    "tab": "AQS 互斥锁",
+    "filename": "AqsMutex.java",
+    "path": "src/main/java/com/caesaemc/juc/course03/AqsMutex.java",
+    "startLine": 1,
+    "endLine": 80,
+    "highlights": [
+      17,
+      22,
+      37,
+      53,
+      54,
+      65,
+      66
+    ],
+    "note": "AQS 管理同步队列和阻塞唤醒，Sync 只定义 state 从 0→1 和 1→0 的业务规则。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course03/AqsMutex.java#L1-L80",
+    "code": "package com.caesaemc.juc.course03;\n\nimport java.util.concurrent.TimeUnit;\nimport java.util.concurrent.locks.AbstractQueuedSynchronizer;\nimport java.util.concurrent.locks.Condition;\nimport java.util.concurrent.locks.Lock;\n\n/**\n * 不可重入互斥锁：子类只定义 state 规则，AQS 管理排队、阻塞和唤醒。\n */\npublic final class AqsMutex implements Lock {\n\n    private final Sync sync = new Sync();\n\n    @Override\n    public void lock() {\n        sync.acquire(1);\n    }\n\n    @Override\n    public void lockInterruptibly() throws InterruptedException {\n        sync.acquireInterruptibly(1);\n    }\n\n    @Override\n    public boolean tryLock() {\n        return sync.tryAcquire(1);\n    }\n\n    @Override\n    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {\n        return sync.tryAcquireNanos(1, unit.toNanos(time));\n    }\n\n    @Override\n    public void unlock() {\n        sync.release(1);\n    }\n\n    @Override\n    public Condition newCondition() {\n        return sync.newCondition();\n    }\n\n    public boolean hasQueuedThreads() {\n        return sync.hasQueuedThreads();\n    }\n\n    private static final class Sync extends AbstractQueuedSynchronizer {\n\n        @Override\n        protected boolean tryAcquire(int ignored) {\n            if (compareAndSetState(0, 1)) {\n                setExclusiveOwnerThread(Thread.currentThread());\n                return true;\n            }\n            return false;\n        }\n\n        @Override\n        protected boolean tryRelease(int ignored) {\n            if (getState() == 0 || getExclusiveOwnerThread() != Thread.currentThread()) {\n                throw new IllegalMonitorStateException(\"当前线程不是锁持有者\");\n            }\n            setExclusiveOwnerThread(null);\n            setState(0);\n            return true;\n        }\n\n        @Override\n        protected boolean isHeldExclusively() {\n            return getState() == 1 && getExclusiveOwnerThread() == Thread.currentThread();\n        }\n\n        private Condition newCondition() {\n            return new ConditionObject();\n        }\n    }\n}\n"
+  },
+  {
+    "key": "course03-semaphore",
+    "tab": "资源闸门",
+    "filename": "ResourceGate.java",
+    "path": "src/main/java/com/caesaemc/juc/course03/ResourceGate.java",
+    "startLine": 1,
+    "endLine": 45,
+    "highlights": [
+      21,
+      26,
+      27,
+      31,
+      33
+    ],
+    "note": "许可表达真实资源容量；acquire 成功后才进入 try/finally，所有路径都会归还许可。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course03/ResourceGate.java#L1-L45",
+    "code": "package com.caesaemc.juc.course03;\n\nimport java.util.Objects;\nimport java.util.concurrent.Callable;\nimport java.util.concurrent.Semaphore;\nimport java.util.concurrent.atomic.AtomicInteger;\n\n/**\n * 线程数量和资源容量是两件事；Semaphore 单独表达真实资源的上限。\n */\npublic final class ResourceGate {\n\n    private final Semaphore permits;\n    private final AtomicInteger active = new AtomicInteger();\n    private final AtomicInteger maxObserved = new AtomicInteger();\n\n    public ResourceGate(int capacity) {\n        if (capacity <= 0) {\n            throw new IllegalArgumentException(\"capacity 必须大于 0\");\n        }\n        permits = new Semaphore(capacity, true);\n    }\n\n    public <T> T call(Callable<T> action) throws Exception {\n        Objects.requireNonNull(action, \"action\");\n        permits.acquire();\n        int now = active.incrementAndGet();\n        maxObserved.accumulateAndGet(now, Math::max);\n        try {\n            return action.call();\n        } finally {\n            active.decrementAndGet();\n            permits.release();\n        }\n    }\n\n    public int maxObservedConcurrency() {\n        return maxObserved.get();\n    }\n\n    public int availablePermits() {\n        return permits.availablePermits();\n    }\n}\n"
+  },
+  {
+    "key": "course04-compound",
+    "tab": "复合竞态",
+    "filename": "CompoundActionLab.java",
+    "path": "src/main/java/com/caesaemc/juc/course04/CompoundActionLab.java",
+    "startLine": 1,
+    "endLine": 53,
+    "highlights": [
+      9,
+      19,
+      20,
+      23,
+      24,
+      25,
+      26,
+      34,
+      35
+    ],
+    "note": "containsKey 与 put 之间存在可插入窗口；两个线程可以同时 miss 并重复执行加载。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course04/CompoundActionLab.java#L1-L53",
+    "code": "package com.caesaemc.juc.course04;\n\nimport java.util.Map;\nimport java.util.concurrent.ConcurrentHashMap;\nimport java.util.concurrent.CountDownLatch;\nimport java.util.concurrent.atomic.AtomicInteger;\n\n/**\n * containsKey 和 put 各自安全，不代表它们组成的 check-then-act 是原子的。\n */\npublic final class CompoundActionLab {\n\n    private CompoundActionLab() {\n    }\n\n    public static Result reproduceDuplicateLoad() throws InterruptedException {\n        Map<String, String> cache = new ConcurrentHashMap<>();\n        AtomicInteger loads = new AtomicInteger();\n        CountDownLatch bothMissed = new CountDownLatch(2);\n        CountDownLatch allowLoad = new CountDownLatch(1);\n\n        Runnable brokenLoad = () -> {\n            if (!cache.containsKey(\"profile\")) {\n                bothMissed.countDown();\n                await(allowLoad);\n                cache.put(\"profile\", \"value-\" + loads.incrementAndGet());\n            }\n        };\n\n        Thread first = new Thread(brokenLoad, \"course04-loader-a\");\n        Thread second = new Thread(brokenLoad, \"course04-loader-b\");\n        first.start();\n        second.start();\n        bothMissed.await();\n        allowLoad.countDown();\n        first.join();\n        second.join();\n        return new Result(loads.get(), cache.get(\"profile\"));\n    }\n\n    private static void await(CountDownLatch latch) {\n        try {\n            latch.await();\n        } catch (InterruptedException exception) {\n            Thread.currentThread().interrupt();\n            throw new IllegalStateException(\"等待时被中断\", exception);\n        }\n    }\n\n    public record Result(int loadCount, String finalValue) {\n    }\n}\n"
+  },
+  {
+    "key": "course04-cache",
+    "tab": "原子缓存",
+    "filename": "AtomicCache.java",
+    "path": "src/main/java/com/caesaemc/juc/course04/AtomicCache.java",
+    "startLine": 1,
+    "endLine": 23,
+    "highlights": [
+      4,
+      12,
       16
     ],
-    "note": "每个下游一个虚拟线程；resourceCapacity 仍交给共享 Semaphore，执行载体和资源容量不混为一谈。",
-    "filename": "VirtualAggregationService.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson16/VirtualAggregationService.java#L8-L18",
-    "code": "public final class VirtualAggregationService\n        extends AbstractAggregationService {\n\n    public VirtualAggregationService(int resourceCapacity) {\n        super(\n                Executors.newThreadPerTaskExecutor(\n                        Thread.ofVirtual().name(\"virtual-downstream-\", 0).factory()\n                ),\n                resourceCapacity,\n                \"virtual-aggregation-timeouts\"\n        );"
+    "note": "把判断和建立交给 ConcurrentHashMap 的原子复合 API；映射函数仍应短小且无递归更新。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course04/AtomicCache.java#L1-L23",
+    "code": "package com.caesaemc.juc.course04;\n\nimport java.util.Objects;\nimport java.util.concurrent.ConcurrentHashMap;\nimport java.util.function.Function;\n\n/**\n * 使用容器提供的复合原子 API，避免在多个公开方法之间留下竞态窗口。\n */\npublic final class AtomicCache<K, V> {\n\n    private final ConcurrentHashMap<K, V> values = new ConcurrentHashMap<>();\n\n    public V get(K key, Function<? super K, ? extends V> loader) {\n        Objects.requireNonNull(loader, \"loader\");\n        return values.computeIfAbsent(key, loader);\n    }\n\n    public int size() {\n        return values.size();\n    }\n}\n"
   },
   {
-    "key": "16-exercise",
-    "tab": "降级练习",
-    "path": "src/main/java/com/caesaemc/juc/lesson16/DegradationPolicyExercise.java",
-    "startLine": 6,
-    "endLine": 20,
+    "key": "course04-pipeline",
+    "tab": "有界流水线",
+    "filename": "BoundedPipeline.java",
+    "path": "src/main/java/com/caesaemc/juc/course04/BoundedPipeline.java",
+    "startLine": 1,
+    "endLine": 46,
     "highlights": [
+      5,
+      20,
+      26,
+      27,
+      39,
+      41
+    ],
+    "note": "有界队列提供背压，END 是明确的停止协议；消费者不会永久卡在 take。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course04/BoundedPipeline.java#L1-L46",
+    "code": "package com.caesaemc.juc.course04;\n\nimport java.util.ArrayList;\nimport java.util.List;\nimport java.util.concurrent.ArrayBlockingQueue;\nimport java.util.concurrent.BlockingQueue;\n\n/**\n * 有界队列既传递数据，也把满载压力传回生产者；结束信号让消费者明确退出。\n */\npublic final class BoundedPipeline {\n\n    private static final String END = new String(\"END\");\n\n    private BoundedPipeline() {\n    }\n\n    public static List<String> run(List<String> input, int capacity)\n            throws InterruptedException {\n        BlockingQueue<String> queue = new ArrayBlockingQueue<>(capacity);\n        List<String> output = new ArrayList<>();\n\n        Thread consumer = new Thread(() -> {\n            try {\n                while (true) {\n                    String item = queue.take();\n                    if (item == END) {\n                        return;\n                    }\n                    output.add(item.toUpperCase());\n                }\n            } catch (InterruptedException exception) {\n                Thread.currentThread().interrupt();\n            }\n        }, \"course04-consumer\");\n\n        consumer.start();\n        for (String item : input) {\n            queue.put(item);\n        }\n        queue.put(END);\n        consumer.join();\n        return List.copyOf(output);\n    }\n}\n"
+  },
+  {
+    "key": "course04-handoff",
+    "tab": "直接移交",
+    "filename": "QueueSemanticsLab.java",
+    "path": "src/main/java/com/caesaemc/juc/course04/QueueSemanticsLab.java",
+    "startLine": 1,
+    "endLine": 28,
+    "highlights": [
+      3,
+      6,
+      14,
+      17,
+      23
+    ],
+    "note": "SynchronousQueue 不保存元素，一次 put 必须与一次 take 在运行时直接配对。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course04/QueueSemanticsLab.java#L1-L28",
+    "code": "package com.caesaemc.juc.course04;\n\nimport java.util.concurrent.SynchronousQueue;\n\n/**\n * SynchronousQueue 容量为零：每次 put 都必须和某个 take 直接配对。\n */\npublic final class QueueSemanticsLab {\n\n    private QueueSemanticsLab() {\n    }\n\n    public static String handOff(String value) throws InterruptedException {\n        SynchronousQueue<String> handoff = new SynchronousQueue<>();\n        Thread producer = new Thread(() -> {\n            try {\n                handoff.put(value);\n            } catch (InterruptedException exception) {\n                Thread.currentThread().interrupt();\n            }\n        }, \"course04-producer\");\n        producer.start();\n        String received = handoff.take();\n        producer.join();\n        return received;\n    }\n}\n"
+  },
+  {
+    "key": "course05-pool",
+    "tab": "线程池决策",
+    "filename": "ThreadPoolDecisionLab.java",
+    "path": "src/main/java/com/caesaemc/juc/course05/ThreadPoolDecisionLab.java",
+    "startLine": 1,
+    "endLine": 61,
+    "highlights": [
+      5,
+      18,
+      24,
+      38,
+      39,
+      40,
+      45,
+      47,
+      50
+    ],
+    "note": "core=1、max=2、queue=1 的确定性实验依次走过核心、入队、扩容和拒绝。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course05/ThreadPoolDecisionLab.java#L1-L61",
+    "code": "package com.caesaemc.juc.course05;\n\nimport java.util.concurrent.ArrayBlockingQueue;\nimport java.util.concurrent.CountDownLatch;\nimport java.util.concurrent.RejectedExecutionException;\nimport java.util.concurrent.ThreadPoolExecutor;\nimport java.util.concurrent.TimeUnit;\n\n/**\n * 稳定走过 ThreadPoolExecutor 的核心线程、队列、非核心线程和拒绝四条路径。\n */\npublic final class ThreadPoolDecisionLab {\n\n    private ThreadPoolDecisionLab() {\n    }\n\n    public static Snapshot observe() throws InterruptedException {\n        ThreadPoolExecutor executor = new ThreadPoolExecutor(\n                1,\n                2,\n                30,\n                TimeUnit.SECONDS,\n                new ArrayBlockingQueue<>(1),\n                new ThreadPoolExecutor.AbortPolicy()\n        );\n        CountDownLatch twoWorkersStarted = new CountDownLatch(2);\n        CountDownLatch release = new CountDownLatch(1);\n        Runnable blockingTask = () -> {\n            twoWorkersStarted.countDown();\n            try {\n                release.await();\n            } catch (InterruptedException exception) {\n                Thread.currentThread().interrupt();\n            }\n        };\n\n        try {\n            executor.execute(blockingTask); // 1. 创建核心 Worker\n            executor.execute(blockingTask); // 2. 核心忙，任务进入队列\n            executor.execute(blockingTask); // 3. 队列满，创建非核心 Worker\n            twoWorkersStarted.await();\n\n            boolean rejected = false;\n            try {\n                executor.execute(() -> {\n                }); // 4. Worker 和队列都满，执行拒绝策略\n            } catch (RejectedExecutionException expected) {\n                rejected = true;\n            }\n            return new Snapshot(executor.getPoolSize(), executor.getQueue().size(), rejected);\n        } finally {\n            release.countDown();\n            executor.shutdown();\n            executor.awaitTermination(1, TimeUnit.SECONDS);\n        }\n    }\n\n    public record Snapshot(int poolSize, int queuedTasks, boolean rejected) {\n    }\n}\n"
+  },
+  {
+    "key": "course05-deadline",
+    "tab": "超时取消",
+    "filename": "DeadlineRunner.java",
+    "path": "src/main/java/com/caesaemc/juc/course05/DeadlineRunner.java",
+    "startLine": 1,
+    "endLine": 53,
+    "highlights": [
+      5,
+      8,
       11,
+      23,
+      24,
+      25,
+      27
+    ],
+    "note": "等待超时后显式 cancel(true)；任务是否停止仍取决于任务代码是否协作响应中断。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course05/DeadlineRunner.java#L1-L53",
+    "code": "package com.caesaemc.juc.course05;\n\nimport java.time.Duration;\nimport java.util.concurrent.Callable;\nimport java.util.concurrent.ExecutionException;\nimport java.util.concurrent.Executors;\nimport java.util.concurrent.TimeUnit;\nimport java.util.concurrent.TimeoutException;\n\n/**\n * TimeoutException 只表示调用方不再等待；cancel(true) 再把中断请求发给任务。\n */\npublic final class DeadlineRunner {\n\n    private DeadlineRunner() {\n    }\n\n    public static <T> Result<T> run(Callable<T> task, Duration timeout)\n            throws InterruptedException {\n        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            var future = executor.submit(task);\n            try {\n                return Result.success(future.get(timeout.toNanos(), TimeUnit.NANOSECONDS));\n            } catch (TimeoutException exception) {\n                future.cancel(true);\n                return Result.timeout();\n            } catch (ExecutionException exception) {\n                return Result.failed(exception.getCause());\n            }\n        }\n    }\n\n    public record Result<T>(Status status, T value, Throwable failure) {\n        public static <T> Result<T> success(T value) {\n            return new Result<>(Status.SUCCESS, value, null);\n        }\n\n        public static <T> Result<T> timeout() {\n            return new Result<>(Status.TIMEOUT, null, null);\n        }\n\n        public static <T> Result<T> failed(Throwable failure) {\n            return new Result<>(Status.FAILED, null, failure);\n        }\n    }\n\n    public enum Status {\n        SUCCESS,\n        TIMEOUT,\n        FAILED\n    }\n}\n"
+  },
+  {
+    "key": "course05-aggregate",
+    "tab": "异步聚合",
+    "filename": "AsyncAggregator.java",
+    "path": "src/main/java/com/caesaemc/juc/course05/AsyncAggregator.java",
+    "startLine": 1,
+    "endLine": 55,
+    "highlights": [
+      27,
+      28,
+      35,
+      41
+    ],
+    "note": "每个调用先归一化为 Outcome，allOf 只协调完成，最后仍按输入 key 收集成功与失败。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course05/AsyncAggregator.java#L1-L55",
+    "code": "package com.caesaemc.juc.course05;\n\nimport java.util.Collections;\nimport java.util.LinkedHashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.concurrent.CompletableFuture;\nimport java.util.concurrent.Executor;\nimport java.util.function.Supplier;\n\n/**\n * 独立调用并行发起，每个结果先归一化成 Outcome，再按输入顺序聚合。\n */\npublic final class AsyncAggregator {\n\n    private AsyncAggregator() {\n    }\n\n    public static <T> Map<String, Outcome<T>> aggregate(\n            Map<String, Supplier<T>> calls,\n            Executor executor\n    ) {\n        List<Map.Entry<String, CompletableFuture<Outcome<T>>>> futures = calls.entrySet()\n                .stream()\n                .map(entry -> Map.entry(\n                        entry.getKey(),\n                        CompletableFuture.supplyAsync(entry.getValue(), executor)\n                                .<Outcome<T>>handle((value, failure) ->\n                                        failure == null\n                                                ? Outcome.success(value)\n                                                : Outcome.failed(failure))\n                ))\n                .toList();\n\n        CompletableFuture.allOf(futures.stream()\n                .map(Map.Entry::getValue)\n                .toArray(CompletableFuture[]::new))\n                .join();\n\n        Map<String, Outcome<T>> result = new LinkedHashMap<>();\n        futures.forEach(entry -> result.put(entry.getKey(), entry.getValue().join()));\n        return Collections.unmodifiableMap(result);\n    }\n\n    public record Outcome<T>(boolean success, T value, Throwable failure) {\n        public static <T> Outcome<T> success(T value) {\n            return new Outcome<>(true, value, null);\n        }\n\n        public static <T> Outcome<T> failed(Throwable failure) {\n            return new Outcome<>(false, null, failure);\n        }\n    }\n}\n"
+  },
+  {
+    "key": "course05-virtual",
+    "tab": "虚拟线程",
+    "filename": "VirtualThreadLab.java",
+    "path": "src/main/java/com/caesaemc/juc/course05/VirtualThreadLab.java",
+    "startLine": 1,
+    "endLine": 54,
+    "highlights": [
+      21,
+      25,
+      30,
+      38
+    ],
+    "note": "虚拟线程数量与下游资源容量分离；线程可以很多，真正同时占用资源的任务仍受许可限制。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course05/VirtualThreadLab.java#L1-L54",
+    "code": "package com.caesaemc.juc.course05;\n\nimport java.time.Duration;\nimport java.util.ArrayList;\nimport java.util.List;\nimport java.util.concurrent.Executors;\nimport java.util.concurrent.Semaphore;\nimport java.util.concurrent.TimeUnit;\nimport java.util.concurrent.atomic.AtomicInteger;\n\n/**\n * 虚拟线程负责廉价承载阻塞任务，Semaphore 仍负责保护昂贵的外部资源。\n */\npublic final class VirtualThreadLab {\n\n    private VirtualThreadLab() {\n    }\n\n    public static Result run(int taskCount, int resourceCapacity, Duration work)\n            throws Exception {\n        Semaphore permits = new Semaphore(resourceCapacity);\n        AtomicInteger active = new AtomicInteger();\n        AtomicInteger maxObserved = new AtomicInteger();\n\n        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            var futures = new ArrayList<java.util.concurrent.Future<Integer>>();\n            for (int index = 0; index < taskCount; index++) {\n                int taskId = index;\n                futures.add(executor.submit(() -> {\n                    permits.acquire();\n                    int now = active.incrementAndGet();\n                    maxObserved.accumulateAndGet(now, Math::max);\n                    try {\n                        TimeUnit.NANOSECONDS.sleep(work.toNanos());\n                        return taskId;\n                    } finally {\n                        active.decrementAndGet();\n                        permits.release();\n                    }\n                }));\n            }\n\n            List<Integer> values = new ArrayList<>();\n            for (var future : futures) {\n                values.add(future.get());\n            }\n            return new Result(List.copyOf(values), maxObserved.get());\n        }\n    }\n\n    public record Result(List<Integer> values, int maxObservedConcurrency) {\n    }\n}\n"
+  },
+  {
+    "key": "course06-deadline",
+    "tab": "共享预算",
+    "filename": "DeadlineBudget.java",
+    "path": "src/main/java/com/caesaemc/juc/course06/DeadlineBudget.java",
+    "startLine": 1,
+    "endLine": 36,
+    "highlights": [
+      10,
       12,
       13,
-      16,
-      17,
-      18,
-      19
+      20,
+      24,
+      25,
+      28,
+      29,
+      33
     ],
-    "note": "底层并发组件只输出稳定终态；接口层再把关键/非关键结果映射为 OK、PARTIAL、FAILED。",
-    "filename": "DegradationPolicyExercise.java",
-    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/lesson16/DegradationPolicyExercise.java#L6-L20",
-    "code": "public final class DegradationPolicyExercise {\n\n    private DegradationPolicyExercise() {\n    }\n\n    public static Decision decide(AggregationResponse response) {\n        // TODO：关键下游失败为 FAILED；仅非关键失败为 PARTIAL；全部成功为 OK。\n        return Decision.OK;\n    }\n\n    public enum Decision {\n        OK,\n        PARTIAL,\n        FAILED\n    }"
+    "note": "入口只计算一次绝对 deadline，每一步都从单调时钟重新计算剩余预算。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course06/DeadlineBudget.java#L1-L36",
+    "code": "package com.caesaemc.juc.course06;\n\nimport java.time.Duration;\n\n/**\n * 请求入口只计算一次绝对截止时间，所有步骤共享同一份剩余预算。\n */\npublic final class DeadlineBudget {\n\n    private final long deadlineNanos;\n\n    private DeadlineBudget(long deadlineNanos) {\n        this.deadlineNanos = deadlineNanos;\n    }\n\n    public static DeadlineBudget start(Duration timeout) {\n        if (timeout.isNegative() || timeout.isZero()) {\n            throw new IllegalArgumentException(\"timeout 必须大于 0\");\n        }\n        long now = System.nanoTime();\n        return new DeadlineBudget(Math.addExact(now, timeout.toNanos()));\n    }\n\n    public long remainingNanos() {\n        return Math.max(0, deadlineNanos - System.nanoTime());\n    }\n\n    public long remainingNanos(Duration stepLimit) {\n        return Math.min(remainingNanos(), stepLimit.toNanos());\n    }\n\n    public boolean expired() {\n        return remainingNanos() == 0;\n    }\n}\n"
+  },
+  {
+    "key": "course06-harness",
+    "tab": "并发测试",
+    "filename": "ConcurrentTestHarness.java",
+    "path": "src/main/java/com/caesaemc/juc/course06/ConcurrentTestHarness.java",
+    "startLine": 1,
+    "endLine": 67,
+    "highlights": [
+      27,
+      28,
+      41,
+      42,
+      45,
+      57,
+      63
+    ],
+    "note": "ready/start 两道门制造确定时序；超时或任一失败都会取消其余 actor。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course06/ConcurrentTestHarness.java#L1-L67",
+    "code": "package com.caesaemc.juc.course06;\n\nimport java.time.Duration;\nimport java.util.ArrayList;\nimport java.util.List;\nimport java.util.concurrent.Callable;\nimport java.util.concurrent.CountDownLatch;\nimport java.util.concurrent.Executors;\nimport java.util.concurrent.Future;\nimport java.util.concurrent.TimeUnit;\nimport java.util.function.IntFunction;\n\n/**\n * ready/start 两道门建立可控时序；准备和结果收集共享同一个总 deadline。\n */\npublic final class ConcurrentTestHarness {\n\n    private ConcurrentTestHarness() {\n    }\n\n    public static <T> List<T> run(\n            int actors,\n            Duration timeout,\n            IntFunction<Callable<T>> actorFactory\n    ) throws Exception {\n        DeadlineBudget budget = DeadlineBudget.start(timeout);\n        CountDownLatch ready = new CountDownLatch(actors);\n        CountDownLatch start = new CountDownLatch(1);\n\n        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            List<Future<T>> futures = new ArrayList<>();\n            for (int index = 0; index < actors; index++) {\n                Callable<T> actor = actorFactory.apply(index);\n                futures.add(executor.submit(() -> {\n                    ready.countDown();\n                    start.await();\n                    return actor.call();\n                }));\n            }\n\n            if (!ready.await(budget.remainingNanos(), TimeUnit.NANOSECONDS)) {\n                cancelAll(futures);\n                throw new IllegalStateException(\"actor 未在预算内准备完成\");\n            }\n            start.countDown();\n\n            List<T> results = new ArrayList<>();\n            try {\n                for (Future<T> future : futures) {\n                    results.add(future.get(\n                            budget.remainingNanos(),\n                            TimeUnit.NANOSECONDS\n                    ));\n                }\n                return List.copyOf(results);\n            } catch (Exception failure) {\n                cancelAll(futures);\n                throw failure;\n            }\n        }\n    }\n\n    private static void cancelAll(List<? extends Future<?>> futures) {\n        futures.forEach(future -> future.cancel(true));\n    }\n}\n"
+  },
+  {
+    "key": "course06-engine",
+    "tab": "可靠聚合",
+    "filename": "ReliableAggregator.java",
+    "path": "src/main/java/com/caesaemc/juc/course06/ReliableAggregator.java",
+    "startLine": 1,
+    "endLine": 163,
+    "highlights": [
+      10,
+      33,
+      38,
+      40,
+      57,
+      62,
+      65,
+      71,
+      86
+    ],
+    "note": "请求共享总预算；提交、许可、执行、超时、取消、稳定终态和有序收集都写进一个协议。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course06/ReliableAggregator.java#L1-L163",
+    "code": "package com.caesaemc.juc.course06;\n\nimport java.time.Duration;\nimport java.util.ArrayList;\nimport java.util.List;\nimport java.util.concurrent.Callable;\nimport java.util.concurrent.ExecutionException;\nimport java.util.concurrent.ExecutorService;\nimport java.util.concurrent.Future;\nimport java.util.concurrent.RejectedExecutionException;\nimport java.util.concurrent.Semaphore;\nimport java.util.concurrent.TimeUnit;\nimport java.util.concurrent.TimeoutException;\n\n/**\n * 有界多下游聚合：共享总 deadline、资源许可、稳定终态和按输入顺序收集。\n */\npublic final class ReliableAggregator implements AutoCloseable {\n\n    private final ExecutorService executor;\n    private final Semaphore resources;\n\n    public ReliableAggregator(ExecutorService executor, int resourceCapacity) {\n        if (resourceCapacity <= 0) {\n            throw new IllegalArgumentException(\"resourceCapacity 必须大于 0\");\n        }\n        this.executor = executor;\n        resources = new Semaphore(resourceCapacity);\n    }\n\n    public Response aggregate(List<DownstreamCall> calls, Duration requestTimeout)\n            throws InterruptedException {\n        DeadlineBudget budget = DeadlineBudget.start(requestTimeout);\n        List<PendingCall> pending = new ArrayList<>();\n\n        for (DownstreamCall call : calls) {\n            try {\n                Future<String> future = executor.submit(() -> invoke(call, budget));\n                pending.add(new PendingCall(call, future, null));\n            } catch (RejectedExecutionException rejection) {\n                pending.add(new PendingCall(\n                        call,\n                        null,\n                        new Outcome(call.name(), call.critical(), Status.REJECTED, null, rejection)\n                ));\n            }\n        }\n\n        List<Outcome> outcomes = new ArrayList<>();\n        for (PendingCall item : pending) {\n            if (item.immediate() != null) {\n                outcomes.add(item.immediate());\n                continue;\n            }\n            long waitNanos = budget.remainingNanos(item.call().timeout());\n            if (waitNanos == 0) {\n                item.future().cancel(true);\n                outcomes.add(Outcome.timeout(item.call()));\n                continue;\n            }\n            try {\n                String value = item.future().get(waitNanos, TimeUnit.NANOSECONDS);\n                outcomes.add(Outcome.success(item.call(), value));\n            } catch (TimeoutException exception) {\n                item.future().cancel(true);\n                outcomes.add(Outcome.timeout(item.call()));\n            } catch (ExecutionException exception) {\n                outcomes.add(Outcome.failed(item.call(), exception.getCause()));\n            }\n        }\n        return new Response(overallStatus(outcomes), List.copyOf(outcomes));\n    }\n\n    private String invoke(DownstreamCall call, DeadlineBudget budget) throws Exception {\n        long waitNanos = budget.remainingNanos(call.timeout());\n        if (waitNanos == 0 || !resources.tryAcquire(waitNanos, TimeUnit.NANOSECONDS)) {\n            throw new ResourceTimeoutException();\n        }\n        try {\n            return call.action().call();\n        } finally {\n            resources.release();\n        }\n    }\n\n    private static OverallStatus overallStatus(List<Outcome> outcomes) {\n        boolean criticalFailure = outcomes.stream()\n                .anyMatch(outcome -> outcome.critical() && outcome.status() != Status.SUCCESS);\n        if (criticalFailure) {\n            return OverallStatus.FAILED;\n        }\n        boolean partial = outcomes.stream()\n                .anyMatch(outcome -> outcome.status() != Status.SUCCESS);\n        return partial ? OverallStatus.PARTIAL : OverallStatus.OK;\n    }\n\n    @Override\n    public void close() throws InterruptedException {\n        executor.shutdown();\n        if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {\n            executor.shutdownNow();\n            executor.awaitTermination(1, TimeUnit.SECONDS);\n        }\n    }\n\n    public record DownstreamCall(\n            String name,\n            boolean critical,\n            Duration timeout,\n            Callable<String> action\n    ) {\n    }\n\n    public record Outcome(\n            String name,\n            boolean critical,\n            Status status,\n            String value,\n            Throwable failure\n    ) {\n        private static Outcome success(DownstreamCall call, String value) {\n            return new Outcome(call.name(), call.critical(), Status.SUCCESS, value, null);\n        }\n\n        private static Outcome timeout(DownstreamCall call) {\n            return new Outcome(call.name(), call.critical(), Status.TIMEOUT, null, null);\n        }\n\n        private static Outcome failed(DownstreamCall call, Throwable failure) {\n            Status status = failure instanceof ResourceTimeoutException\n                    ? Status.TIMEOUT\n                    : Status.FAILED;\n            return new Outcome(call.name(), call.critical(), status, null, failure);\n        }\n    }\n\n    public record Response(OverallStatus status, List<Outcome> outcomes) {\n    }\n\n    private record PendingCall(\n            DownstreamCall call,\n            Future<String> future,\n            Outcome immediate\n    ) {\n    }\n\n    public enum Status {\n        SUCCESS,\n        TIMEOUT,\n        REJECTED,\n        FAILED\n    }\n\n    public enum OverallStatus {\n        OK,\n        PARTIAL,\n        FAILED\n    }\n\n    private static final class ResourceTimeoutException extends TimeoutException {\n    }\n}\n"
+  },
+  {
+    "key": "course06-strategy",
+    "tab": "执行策略",
+    "filename": "AggregationStrategies.java",
+    "path": "src/main/java/com/caesaemc/juc/course06/AggregationStrategies.java",
+    "startLine": 1,
+    "endLine": 39,
+    "highlights": [
+      3,
+      19,
+      21,
+      26,
+      27,
+      29,
+      32,
+      34,
+      35
+    ],
+    "note": "平台线程池与虚拟线程只是执行载体；两种方案都继续用 resourceCapacity 保护真实下游。",
+    "link": "https://github.com/caesaemc/JucCoreImp/blob/main/src/main/java/com/caesaemc/juc/course06/AggregationStrategies.java#L1-L39",
+    "code": "package com.caesaemc.juc.course06;\n\nimport java.util.concurrent.ArrayBlockingQueue;\nimport java.util.concurrent.Executors;\nimport java.util.concurrent.ThreadPoolExecutor;\nimport java.util.concurrent.TimeUnit;\n\n/**\n * 执行载体可以替换，但两种策略都必须继续限制真实资源容量。\n */\npublic final class AggregationStrategies {\n\n    private AggregationStrategies() {\n    }\n\n    public static ReliableAggregator platform(\n            int workers,\n            int queueCapacity,\n            int resourceCapacity\n    ) {\n        ThreadPoolExecutor executor = new ThreadPoolExecutor(\n                workers,\n                workers,\n                0,\n                TimeUnit.MILLISECONDS,\n                new ArrayBlockingQueue<>(queueCapacity),\n                new ThreadPoolExecutor.AbortPolicy()\n        );\n        return new ReliableAggregator(executor, resourceCapacity);\n    }\n\n    public static ReliableAggregator virtual(int resourceCapacity) {\n        return new ReliableAggregator(\n                Executors.newVirtualThreadPerTaskExecutor(),\n                resourceCapacity\n        );\n    }\n}\n"
   }
 ] as const satisfies readonly SourceSnippet[];
 

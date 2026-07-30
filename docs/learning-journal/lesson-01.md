@@ -56,15 +56,16 @@ A、B 都从共享对象读到 0，各自在自己的执行栈中算出 1，随�
 
 ## 源码学习顺序
 
-1. [UnsafeCounter.java](../../src/main/java/com/caesaemc/juc/lesson01/UnsafeCounter.java)
-2. [DeterministicLostUpdateDemo.java](../../src/main/java/com/caesaemc/juc/lesson01/DeterministicLostUpdateDemo.java)
-3. [HappensBeforeDemo.java](../../src/main/java/com/caesaemc/juc/lesson01/HappensBeforeDemo.java)
+1. [SharedCounterLab.java](../../src/main/java/com/caesaemc/juc/course01/SharedCounterLab.java)：先找共享字段，再把 `value++` 拆成三步。
+2. [LostUpdateLab.java](../../src/main/java/com/caesaemc/juc/course01/LostUpdateLab.java)：用两个门闩稳定构造合法的丢失更新时序。
+3. [HappensBeforeLab.java](../../src/main/java/com/caesaemc/juc/course01/HappensBeforeLab.java)：观察 `start` 和 `join` 两条同步边。
+4. [Course01Exercise.java](../../src/main/java/com/caesaemc/juc/course01/Course01Exercise.java)：检查同一把监视器怎样同时保护读写。
 
 运行：
 
 ```bash
 mvn -q -DskipTests package
-java -cp target/classes com.caesaemc.juc.lesson01.Lesson01Application
+java -cp target/classes com.caesaemc.juc.course01.Course01Application
 ```
 
 ## 一个练习
@@ -72,11 +73,11 @@ java -cp target/classes com.caesaemc.juc.lesson01.Lesson01Application
 目标：完成一个在多线程下不会丢失更新的计数器。
 
 修改
-[ExerciseCounter.java](../../src/main/java/com/caesaemc/juc/lesson01/ExerciseCounter.java)，
+[Course01Exercise.java](../../src/main/java/com/caesaemc/juc/course01/Course01Exercise.java)，
 保证递增操作不会被其他线程插入，并且读取能看见已经完成的更新。
 
 ```bash
-mvn -q -Dtest=ExerciseCounterTest test
+mvn -q -Dtest=Course01ExerciseTest test
 ```
 
 完成后写一句证明：哪个共享字段被保护、读写使用了什么同步协议、为什么

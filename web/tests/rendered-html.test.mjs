@@ -43,7 +43,7 @@ test("默认打开带运行时内存动画的第 01 课", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>JUC 快速面试课 · 6 课精简版<\/title>/i);
+  assert.match(html, /<title>JUC 六课源码实战<\/title>/i);
   assert.match(html, /<html[^>]+data-theme="light"/i);
   assert.match(html, /aria-label="6 课快速面试课程切换"/);
   assert.match(html, /aria-label="第 01 课：共享数据与 Java 内存模型"/);
@@ -63,6 +63,9 @@ test("默认打开带运行时内存动画的第 01 课", async () => {
   assert.match(html, /网页正文与仓库讲义来自同一个文件/);
   assert.match(html, /只做这 5 件事/);
   assert.match(html, /data-testid="learning-checklist-01"/);
+  assert.match(html, /讲义 · 动画 · 源码统一 6 课/);
+  assert.match(html, /主源码 course01/);
+  assert.match(html, /com\/caesaemc\/juc\/course01\/SharedCounterLab\.java/);
   assert.doesNotMatch(html, /自动播放|DATA ROUTING TABLE|16 LESSONS/);
 });
 
@@ -131,8 +134,9 @@ test("六份 Markdown 是网页讲义的唯一内容源，并在构建前自动�
   assert.match(workspace, /getLessonNote\(lesson\.number\)/);
   assert.match(workspace, /<LessonMarkdown note=\{note\} \/>/);
   assert.match(workspace, /markdown-toc/);
-  assert.match(packageJson, /"prebuild": "npm run generate:notes"/);
-  assert.match(packageJson, /"predev": "npm run generate:notes"/);
+  assert.match(packageJson, /"prebuild": "npm run generate:content"/);
+  assert.match(packageJson, /"predev": "npm run generate:content"/);
+  assert.match(packageJson, /generate:notes.*generate:sources/);
 });
 
 test("后五课分别使用真实结构的可播放动画，而不是复用通用流程图", async () => {
@@ -172,15 +176,21 @@ test("后五课分别使用真实结构的可播放动画，而不是复用通�
   assert.doesNotMatch(workspace, /className="memory-region"/);
 });
 
-test("学习入口只有 6 课，并明确记录原 16 课合并关系", async () => {
-  const fastData = await readFile(
-    new URL("../app/fast-course-data.ts", import.meta.url),
-    "utf8",
-  );
+test("学习入口、源码包和运行类统一为 6 课", async () => {
+  const [fastData, lessonOne] = await Promise.all([
+    readFile(
+      new URL("../app/fast-course-data.ts", import.meta.url),
+      "utf8",
+    ),
+    readFile(
+      new URL("../app/lesson-one-simple-data.ts", import.meta.url),
+      "utf8",
+    ),
+  ]);
   const tabs = between(
     fastData,
     "export const fastCourseTabs",
-    "function legacy",
+    "function baseLesson",
   );
   const lessons = between(
     fastData,
@@ -190,9 +200,15 @@ test("学习入口只有 6 课，并明确记录原 16 课合并关系", async (
 
   assert.equal(occurrences(tabs, /\n\s+number: "/g), 6);
   assert.equal(occurrences(lessons, /\n\s+lesson0[1-6],/g), 6);
-  assert.match(fastData, /合并原第 03～06 课/);
-  assert.match(fastData, /合并原第 09～13 课/);
-  assert.match(fastData, /合并原第 14～16 课/);
+  for (let index = 1; index <= 6; index += 1) {
+    const number = String(index).padStart(2, "0");
+    assert.match(fastData, new RegExp(`主源码 course${number}`));
+    assert.match(
+      number === "01" ? lessonOne : fastData,
+      new RegExp(`com\\.caesaemc\\.juc\\.course${number}\\.Course${number}Application`),
+    );
+  }
+  assert.doesNotMatch(fastData, /合并原第|sourceKeys: \["0[3-9]-|sourceKeys: \["1[0-6]-/);
 });
 
 test("生成的源码片段与 Java 文件完全一致", async () => {
@@ -209,9 +225,14 @@ test("生成的源码片段与 Java 文件完全一致", async () => {
   const snippets = JSON.parse(
     generated.slice(start + startMarker.length, end),
   );
-  assert.equal(snippets.length, 46);
+  assert.equal(snippets.length, 24);
 
   for (const snippet of snippets) {
+    assert.match(
+      snippet.path,
+      /^src\/main\/java\/com\/caesaemc\/juc\/course0[1-6]\//,
+    );
+    assert.doesNotMatch(snippet.path, /\/lesson\d+\//);
     const source = await readFile(
       new URL(`../../${snippet.path}`, import.meta.url),
       "utf8",

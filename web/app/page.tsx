@@ -5,7 +5,7 @@ import {
   fastCourseTabs,
   getFastLessonDetail,
 } from "./fast-course-data";
-import type { CourseTab } from "./course-data";
+import type { CourseTab } from "./course-types";
 import LessonWorkspace from "./lesson-workspace";
 
 type Theme = "light" | "dark";
@@ -69,7 +69,7 @@ function CourseDock({
         <span>JC</span>
         <div>
           <strong>JUC 快速面试课</strong>
-          <small>16 课已合并为 6 课</small>
+          <small>讲义 · 动画 · 源码统一 6 课</small>
         </div>
       </div>
 

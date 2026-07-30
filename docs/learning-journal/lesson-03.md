@@ -6,8 +6,8 @@
 >
 > 学习页面：[打开第 03 课](https://juc-core-lab-caesaemc.sappy-lemon-5907.chatgpt.site?lesson=03)
 
-这份文件是本课唯一讲义，同时记录学习进度、问题和复盘。原第 03～06
-课的内容在这里合并为一条主线：线程收到停止请求，竞争共享状态，失败后
+这份文件是本课唯一讲义，同时记录学习进度、问题和复盘。本课使用独立的
+`course03` 主源码串起一条主线：线程收到停止请求，竞争共享状态，失败后
 进入等待队列，条件满足后再被唤醒。
 
 ## Todo
@@ -15,7 +15,7 @@
 - [ ] 读完本课讲义并记住工具选择顺序
 - [ ] 播放 AQS 动画并解释 `state`、`owner`、`head`、`tail`
 - [ ] 阅读并运行中断、CAS、AQS 和 Semaphore 源码
-- [ ] 修复 `CancellationExercise` 并通过测试
+- [ ] 重写 `Course03Exercise` 并通过测试
 - [ ] 不看答案口述三道面试题
 
 ## 正确学习路径
@@ -172,33 +172,29 @@ try {
 
 ## 源码学习顺序
 
-1. [TwoPhaseTerminator.java](../../src/main/java/com/caesaemc/juc/lesson03/TwoPhaseTerminator.java)：中断请求、恢复标志、`finally` 收尾和 `join` 验收。
-2. [VarHandleCounter.java](../../src/main/java/com/caesaemc/juc/lesson04/VarHandleCounter.java)：CAS 失败后重新读取。
-3. [Mutex.java](../../src/main/java/com/caesaemc/juc/lesson05/Mutex.java)：AQS 独占获取与释放条件。
-4. [BoundedBuffer.java](../../src/main/java/com/caesaemc/juc/lesson05/BoundedBuffer.java)：`notFull` 与 `notEmpty` 两条条件队列。
-5. [ResourceGate.java](../../src/main/java/com/caesaemc/juc/lesson06/ResourceGate.java)：Semaphore 许可和异常路径释放。
-6. [StampedPoint.java](../../src/main/java/com/caesaemc/juc/lesson06/StampedPoint.java)：乐观读失败后回退到悲观读。
+1. [TwoPhaseTerminator.java](../../src/main/java/com/caesaemc/juc/course03/TwoPhaseTerminator.java)：中断请求、恢复标志、`finally` 收尾和 `join` 验收。
+2. [CasCounter.java](../../src/main/java/com/caesaemc/juc/course03/CasCounter.java)：CAS 失败后重新读取。
+3. [AqsMutex.java](../../src/main/java/com/caesaemc/juc/course03/AqsMutex.java)：AQS 独占获取、等待和释放条件。
+4. [ResourceGate.java](../../src/main/java/com/caesaemc/juc/course03/ResourceGate.java)：Semaphore 许可和异常路径释放。
+5. [Course03Exercise.java](../../src/main/java/com/caesaemc/juc/course03/Course03Exercise.java)：中断异常后的恢复与退出。
 
-当前深入源码运行入口：
+本课唯一运行入口：
 
 ```bash
 mvn -q -DskipTests package
-java -cp target/classes com.caesaemc.juc.lesson03.Lesson03Application
-java -cp target/classes com.caesaemc.juc.lesson04.Lesson04Application
-java -cp target/classes com.caesaemc.juc.lesson05.Lesson05Application
-java -cp target/classes com.caesaemc.juc.lesson06.Lesson06Application
+java -cp target/classes com.caesaemc.juc.course03.Course03Application
 ```
 
 ## 一个练习
 
-目标：让 `CancellationExercise` 在收到中断后可靠停止，不吞掉取消信号。
+目标：让可取消任务在收到中断后可靠停止，不吞掉取消信号。
 
 修改
-[CancellationExercise.java](../../src/main/java/com/caesaemc/juc/lesson03/CancellationExercise.java)，
+[Course03Exercise.java](../../src/main/java/com/caesaemc/juc/course03/Course03Exercise.java)，
 在捕获 `InterruptedException` 后恢复中断标志并退出循环。
 
 ```bash
-mvn -q -Dtest=CancellationExerciseTest test
+mvn -q -Dtest=Course03ExerciseTest test
 ```
 
 完成后必须能解释：为什么阻塞方法抛出 `InterruptedException` 后需要恢复
@@ -223,9 +219,9 @@ mvn -q -Dtest=CancellationExerciseTest test
 
 ## 学习记录
 
-### 2026-07-30：建立六课版讲义
+### 2026-07-30：建立第三课独立源码
 
-- 原第 03～06 课合并为“中断 → CAS → AQS → Condition → 同步器”的学习主线。
+- `course03` 统一承载“中断 → CAS → AQS → Semaphore”的学习主线。
 - 网页动画选择 `Mutex` 的一次真实锁交接作为中心模型。
 - 下一步：先运行 `TwoPhaseTerminator`，再播放 AQS 动画。
 
