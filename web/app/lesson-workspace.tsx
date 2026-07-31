@@ -6,7 +6,10 @@ import {
   type FastLesson,
 } from "./fast-course-data";
 import LessonMarkdown from "./lesson-markdown";
-import { getLessonNote } from "./lesson-notes.generated";
+import {
+  getLessonNote,
+  type LessonNote,
+} from "./lesson-notes.generated";
 import LessonOneMemoryLab from "./lesson-one-memory-lab";
 import LessonRuntimeLab from "./lesson-runtime-lab";
 
@@ -86,6 +89,66 @@ function explainCodeLine(line: string): string | undefined {
     return "读线程从唯一的共享入口拿一次引用。";
   }
   return undefined;
+}
+
+function LecturePane({
+  lesson,
+  note,
+}: {
+  lesson: FastLesson;
+  note: LessonNote | undefined;
+}) {
+  if (!note) {
+    return null;
+  }
+
+  return (
+    <aside
+      className="simple-lecture-pane"
+      id="lesson-guide"
+      aria-label={`第 ${lesson.number} 课完整讲义`}
+    >
+      <header className="lecture-pane-header">
+        <span>RIGHT / LECTURE</span>
+        <h2>本课完整讲义</h2>
+        <p>
+          右侧独立滚动。正文直接来自仓库 Markdown，网页与学习记录始终保持同一份内容。
+        </p>
+      </header>
+
+      <div className="lecture-pane-goals">
+        <article>
+          <span>学完标准</span>
+          <p>{lesson.finish}</p>
+        </article>
+        <article>
+          <span>面试选型口诀</span>
+          <ul>
+            {lesson.quickRules.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
+          </ul>
+        </article>
+      </div>
+
+      <nav
+        className="markdown-toc lecture-pane-toc"
+        id="lesson-navigation"
+        aria-label={`第 ${lesson.number} 课 Markdown 目录`}
+      >
+        {note.headings.map((heading, index) => (
+          <a href={`#${heading.id}`} key={heading.id}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{heading.label}</strong>
+          </a>
+        ))}
+      </nav>
+
+      <section className="markdown-panel">
+        <LessonMarkdown note={note} />
+      </section>
+    </aside>
+  );
 }
 
 export default function LessonWorkspace({ lesson }: { lesson: FastLesson }) {
@@ -179,70 +242,67 @@ export default function LessonWorkspace({ lesson }: { lesson: FastLesson }) {
         </div>
       </header>
 
-      <div className="simple-workspace">
-        <aside
-          className="simple-todo"
-          aria-label={`第 ${lesson.number} 课 Todo`}
-          data-testid={`learning-checklist-${lesson.number}`}
+      <div className="simple-workspace" data-layout="course-split">
+        <section
+          className="simple-learning-pane"
+          aria-label={`第 ${lesson.number} 课互动课程内容`}
         >
-          <header>
+          <header className="learning-pane-header">
             <div>
-              <span>TODO</span>
-              <h2>只做这 5 件事</h2>
+              <span>LEFT / INTERACTIVE</span>
+              <h2>动画、源码与练习</h2>
             </div>
-            <strong>
-              {completed.size}/{TODO_ITEMS.length}
-            </strong>
+            <p>左侧按 Todo 向下学习；需要理论上下文时，直接对照右侧讲义。</p>
           </header>
-          <div className="simple-progress" aria-hidden="true">
-            <i style={{ width: `${progress}%` }} />
-          </div>
-          <div className="simple-todo-list">
-            {TODO_ITEMS.map((item, index) => {
-              const done = completed.has(item.id);
-              return (
-                <label className={done ? "is-done" : ""} key={item.id}>
-                  <input
-                    type="checkbox"
-                    checked={done}
-                    onChange={() => toggleTodo(item.id)}
-                  />
-                  <span className="simple-check">
-                    {done ? "✓" : index + 1}
-                  </span>
-                  <span>
-                    <a href={item.href}>{item.label}</a>
-                    <small>{item.detail}</small>
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-          <button
-            className="simple-reset"
-            type="button"
-            onClick={() => setCompleted(new Set())}
+
+          <aside
+            className="simple-todo"
+            aria-label={`第 ${lesson.number} 课 Todo`}
+            data-testid={`learning-checklist-${lesson.number}`}
           >
-            清空本课勾选
-          </button>
-        </aside>
-
-        <div className="simple-main-column">
-          {note ? (
-            <section className="simple-panel markdown-panel" id="lesson-guide">
-              <div className="simple-section-title">
-                <span>MD</span>
-                <div>
-                  <h2>先读完整课程讲义</h2>
-                  <p>
-                    下面直接渲染本课 Markdown；讲义、学习记录和后续有价值问答只维护这一份。
-                  </p>
-                </div>
+            <header>
+              <div>
+                <span>TODO</span>
+                <h2>只做这 5 件事</h2>
               </div>
-              <LessonMarkdown note={note} />
-            </section>
-          ) : null}
+              <strong>
+                {completed.size}/{TODO_ITEMS.length}
+              </strong>
+            </header>
+            <div className="simple-progress" aria-hidden="true">
+              <i style={{ width: `${progress}%` }} />
+            </div>
+            <div className="simple-todo-list">
+              {TODO_ITEMS.map((item, index) => {
+                const done = completed.has(item.id);
+                return (
+                  <label className={done ? "is-done" : ""} key={item.id}>
+                    <input
+                      type="checkbox"
+                      checked={done}
+                      onChange={() => toggleTodo(item.id)}
+                    />
+                    <span className="simple-check">
+                      {done ? "✓" : index + 1}
+                    </span>
+                    <span>
+                      <a href={item.href}>{item.label}</a>
+                      <small>{item.detail}</small>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+            <button
+              className="simple-reset"
+              type="button"
+              onClick={() => setCompleted(new Set())}
+            >
+              清空本课勾选
+            </button>
+          </aside>
 
+          <div className="simple-main-column">
           <section className="simple-panel memory-panel" id="memory-picture">
             <div className="simple-section-title">
               <span>01</span>
@@ -403,46 +463,10 @@ export default function LessonWorkspace({ lesson }: { lesson: FastLesson }) {
               })}
             </div>
           </section>
-        </div>
-
-        <aside className="simple-guide" id="lesson-navigation">
-          <header>
-            <span>讲义目录</span>
-            <h2>正文就在当前网页</h2>
-          </header>
-
-          <p className="guide-hook">
-            不需要再打开本地 Markdown。点击目录可在本页正文中跳转。
-          </p>
-
-          {note ? (
-            <nav
-              className="markdown-toc"
-              aria-label={`第 ${lesson.number} 课 Markdown 目录`}
-            >
-              {note.headings.map((heading, index) => (
-                <a href={`#${heading.id}`} key={heading.id}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <strong>{heading.label}</strong>
-                </a>
-              ))}
-            </nav>
-          ) : null}
-
-          <div className="guide-rules">
-            <strong>面试选型口诀</strong>
-            <ul>
-              {lesson.quickRules.map((rule) => (
-                <li key={rule}>{rule}</li>
-              ))}
-            </ul>
           </div>
+        </section>
 
-          <div className="guide-finish">
-            <span>学完标准</span>
-            <p>{lesson.finish}</p>
-          </div>
-        </aside>
+        <LecturePane lesson={lesson} note={note} />
       </div>
 
       <footer className="simple-footer">

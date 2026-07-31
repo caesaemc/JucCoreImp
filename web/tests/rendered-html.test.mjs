@@ -139,6 +139,47 @@ test("六份 Markdown 是网页讲义的唯一内容源，并在构建前自动�
   assert.match(packageJson, /generate:notes.*generate:sources/);
 });
 
+test("课程工作区在桌面左右分屏，右侧讲义独立滚动", async () => {
+  const [workspace, styles] = await Promise.all([
+    readFile(new URL("../app/lesson-workspace.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
+  const splitWorkspace = between(
+    workspace,
+    '<div className="simple-workspace" data-layout="course-split">',
+    '<footer className="simple-footer">',
+  );
+  const learningPane = between(
+    splitWorkspace,
+    'className="simple-learning-pane"',
+    "<LecturePane lesson={lesson} note={note} />",
+  );
+  const lectureStyles = between(
+    styles,
+    ".simple-lecture-pane {",
+    ".lecture-pane-header {",
+  );
+  const responsiveStyles = between(
+    styles,
+    "@media (max-width: 1120px)",
+    "@media (max-width: 820px)",
+  );
+
+  assert.match(splitWorkspace, /className="simple-learning-pane"/);
+  assert.match(splitWorkspace, /<LecturePane lesson=\{lesson\} note=\{note\} \/>/);
+  assert.match(learningPane, /LessonOneMemoryLab|LessonRuntimeLab/);
+  assert.doesNotMatch(learningPane, /<LessonMarkdown/);
+  assert.match(
+    styles,
+    /grid-template-columns: minmax\(0, 1\.6fr\) minmax\(430px, 0\.9fr\)/,
+  );
+  assert.match(lectureStyles, /position: sticky/);
+  assert.match(lectureStyles, /height: calc\(100vh - var\(--dock-height\) - 32px\)/);
+  assert.match(lectureStyles, /overflow-y: auto/);
+  assert.match(responsiveStyles, /grid-template-columns: 1fr/);
+  assert.match(responsiveStyles, /\.simple-lecture-pane \{\s+position: static/);
+});
+
 test("后五课分别使用真实结构的可播放动画，而不是复用通用流程图", async () => {
   const [runtimeLab, workspace] = await Promise.all([
     readFile(
@@ -274,7 +315,7 @@ test("每课只有 5 项 Todo，进度和主题保存在本地", async () => {
   assert.match(layout, /og-memory-lab\.png/);
   assert.match(styles, /html\[data-theme="dark"\]/);
   assert.match(styles, /\.simple-todo/);
-  assert.match(styles, /\.simple-guide/);
+  assert.match(styles, /\.simple-lecture-pane/);
   assert.match(packageJson, /generate:sources/);
   assert.doesNotMatch(workspace, /自动播放|flowStep|DATA ROUTING TABLE/);
   await assert.rejects(access(new URL("../app/lesson-one.tsx", webRoot)));

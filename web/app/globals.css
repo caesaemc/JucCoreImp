@@ -289,7 +289,7 @@ html[data-theme="dark"] .accent-red {
   align-items: flex-end;
   justify-content: space-between;
   gap: 32px;
-  width: min(1680px, calc(100% - 48px));
+  width: min(1880px, calc(100% - 32px));
   margin: 0 auto;
   padding: 38px 0 26px;
 }
@@ -346,28 +346,68 @@ html[data-theme="dark"] .accent-red {
 
 .simple-workspace {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 310px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(430px, 0.9fr);
   align-items: start;
-  gap: 20px;
-  width: min(1680px, calc(100% - 48px));
+  gap: clamp(18px, 1.5vw, 28px);
+  width: min(1880px, calc(100% - 32px));
   margin: 0 auto;
   padding-bottom: 58px;
 }
 
-.simple-todo,
-.simple-guide {
-  position: sticky;
-  top: calc(var(--dock-height) + 18px);
-  max-height: calc(100vh - var(--dock-height) - 36px);
-  overflow-y: auto;
+.simple-learning-pane {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  min-width: 0;
+}
+
+.learning-pane-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 17px 20px;
   border: 1px solid var(--line);
-  border-radius: 17px;
-  background: var(--surface);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--accent) 9%, var(--surface)),
+      var(--surface) 62%
+    );
   box-shadow: var(--shadow);
+}
+
+.learning-pane-header span,
+.lecture-pane-header > span {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.learning-pane-header h2,
+.lecture-pane-header h2 {
+  margin: 3px 0 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.learning-pane-header p {
+  max-width: 390px;
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 11px;
+  text-align: right;
 }
 
 .simple-todo {
   padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .simple-todo > header {
@@ -377,8 +417,7 @@ html[data-theme="dark"] .accent-red {
   gap: 12px;
 }
 
-.simple-todo > header span,
-.simple-guide > header span {
+.simple-todo > header span {
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -386,8 +425,7 @@ html[data-theme="dark"] .accent-red {
   letter-spacing: 0.1em;
 }
 
-.simple-todo h2,
-.simple-guide h2 {
+.simple-todo h2 {
   margin: 2px 0 0;
   font-size: 18px;
   line-height: 1.25;
@@ -415,14 +453,28 @@ html[data-theme="dark"] .accent-red {
   transition: width 180ms ease;
 }
 
+.simple-todo-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
 .simple-todo-list label {
   display: grid;
   grid-template-columns: 30px 1fr;
   align-items: start;
   gap: 9px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+  min-width: 0;
+  padding: 11px 10px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
   cursor: pointer;
+}
+
+.simple-todo-list label:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  background: var(--accent-soft);
 }
 
 .simple-todo-list input {
@@ -478,8 +530,9 @@ html[data-theme="dark"] .accent-red {
 }
 
 .simple-reset {
-  width: 100%;
-  margin-top: 14px;
+  display: block;
+  width: auto;
+  margin: 11px 0 0 auto;
   padding: 8px;
   border: 0;
   background: transparent;
@@ -2287,8 +2340,80 @@ html[data-theme="dark"] .runtime-lab {
   font-size: 12px;
 }
 
+.simple-lecture-pane {
+  position: sticky;
+  top: calc(var(--dock-height) + 16px);
+  align-self: start;
+  min-width: 0;
+  height: calc(100vh - var(--dock-height) - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scroll-margin-top: calc(var(--dock-height) + 16px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.lecture-pane-header {
+  padding: 21px 22px 18px;
+  border-bottom: 1px solid var(--line);
+  background:
+    linear-gradient(
+      130deg,
+      color-mix(in srgb, var(--accent) 12%, var(--surface)),
+      var(--surface) 72%
+    );
+}
+
+.lecture-pane-header p {
+  margin: 8px 0 0;
+  color: var(--text-soft);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.lecture-pane-goals {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px 0;
+}
+
+.lecture-pane-goals article {
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface-soft);
+}
+
+.lecture-pane-goals span {
+  display: block;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.lecture-pane-goals p,
+.lecture-pane-goals ul {
+  margin: 5px 0 0;
+  color: var(--text-soft);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.lecture-pane-goals ul {
+  padding-left: 17px;
+}
+
+.lecture-pane-goals li + li {
+  margin-top: 3px;
+}
+
 .markdown-panel {
-  padding-bottom: clamp(30px, 4vw, 52px);
+  padding: 0 16px 18px;
 }
 
 .lesson-markdown {
@@ -2344,6 +2469,32 @@ html[data-theme="dark"] .runtime-lab {
   color: var(--text);
   font-size: 14px;
   line-height: 1.85;
+}
+
+.simple-lecture-pane .markdown-content {
+  max-width: none;
+  padding: 28px clamp(20px, 2vw, 34px) 46px;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.simple-lecture-pane .markdown-content h1 {
+  font-size: 27px;
+}
+
+.simple-lecture-pane .markdown-content h2 {
+  margin-top: 42px;
+  font-size: 20px;
+}
+
+.simple-lecture-pane .markdown-content h3 {
+  font-size: 16px;
+}
+
+.simple-lecture-pane .markdown-content h1,
+.simple-lecture-pane .markdown-content h2,
+.simple-lecture-pane .markdown-content h3 {
+  scroll-margin-top: 18px;
 }
 
 .markdown-content h1,
@@ -2508,140 +2659,54 @@ html[data-theme="dark"] .runtime-lab {
   background: var(--green);
 }
 
-.simple-guide {
-  padding: 20px;
-  scroll-margin-top: calc(var(--dock-height) + 20px);
-}
-
-.guide-hook {
-  margin: 16px 0;
-  padding: 12px;
-  border-left: 3px solid var(--accent);
-  border-radius: 0 9px 9px 0;
-  background: var(--accent-soft);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.markdown-toc {
-  display: grid;
+.lecture-pane-toc {
+  display: flex;
+  gap: 7px;
+  margin: 14px 16px;
+  padding: 10px 0;
+  overflow-x: auto;
   border-top: 1px solid var(--line);
-}
-
-.markdown-toc a {
-  display: grid;
-  grid-template-columns: 27px minmax(0, 1fr);
-  align-items: start;
-  gap: 8px;
-  padding: 10px 2px;
   border-bottom: 1px solid var(--line);
+  scrollbar-width: thin;
 }
 
-.markdown-toc a:hover {
+.lecture-pane-toc a {
+  display: grid;
+  flex: 0 0 148px;
+  grid-template-columns: 25px minmax(0, 1fr);
+  align-items: start;
+  gap: 7px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+}
+
+.lecture-pane-toc a:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
   color: var(--accent);
 }
 
-.markdown-toc span {
+.lecture-pane-toc span {
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 8px;
 }
 
-.markdown-toc strong {
+.lecture-pane-toc strong {
+  overflow: hidden;
   font-size: 10px;
   line-height: 1.45;
-}
-
-.guide-concepts {
-  display: grid;
-}
-
-.guide-concepts article {
-  display: grid;
-  grid-template-columns: 25px 1fr;
-  gap: 9px;
-  padding: 13px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.guide-concepts article > span {
-  display: grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  border-radius: 7px;
-  background: var(--accent);
-  color: #fff;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 800;
-}
-
-.guide-concepts strong {
-  display: block;
-  font-size: 12px;
-}
-
-.guide-concepts p {
-  margin: 4px 0;
-  color: var(--text-soft);
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.guide-concepts small {
-  color: var(--muted);
-  font-size: 9px;
-  line-height: 1.45;
-}
-
-.guide-rules,
-.guide-finish {
-  margin-top: 16px;
-  padding: 13px;
-  border-radius: 11px;
-  background: var(--surface-soft);
-}
-
-.guide-rules > strong,
-.guide-finish > span {
-  color: var(--accent);
-  font-size: 10px;
-}
-
-.guide-rules ul {
-  margin: 8px 0 0;
-  padding-left: 17px;
-}
-
-.guide-rules li {
-  margin: 6px 0;
-  color: var(--text-soft);
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.guide-finish {
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
-  background: var(--accent-soft);
-}
-
-.guide-finish span {
-  display: block;
-  font-family: var(--font-mono);
-  font-weight: 800;
-}
-
-.guide-finish p {
-  margin: 5px 0 0;
-  font-size: 11px;
-  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .simple-footer {
   display: flex;
   justify-content: space-between;
-  width: min(1680px, calc(100% - 48px));
+  width: min(1880px, calc(100% - 32px));
   margin: 0 auto;
   padding: 24px 0 34px;
   border-top: 1px solid var(--line);
@@ -2665,7 +2730,7 @@ html[data-theme="dark"] .runtime-lab {
   }
 
   .simple-workspace {
-    grid-template-columns: 220px minmax(0, 1fr) 280px;
+    grid-template-columns: minmax(0, 1.45fr) minmax(410px, 0.9fr);
   }
 
   .runtime-toolbar {
@@ -2693,24 +2758,20 @@ html[data-theme="dark"] .runtime-lab {
   }
 
   .simple-workspace {
-    grid-template-columns: 220px minmax(0, 1fr);
-    grid-template-areas:
-      "todo main"
-      "guide main";
+    grid-template-columns: 1fr;
+    width: min(1040px, calc(100% - 32px));
   }
 
-  .simple-todo {
-    grid-area: todo;
-  }
-
-  .simple-main-column {
-    grid-area: main;
-  }
-
-  .simple-guide {
+  .simple-lecture-pane {
     position: static;
-    grid-area: guide;
+    height: auto;
     max-height: none;
+    overflow: visible;
+    overscroll-behavior: auto;
+  }
+
+  .simple-lecture-pane .markdown-content {
+    max-width: 900px;
   }
 }
 
@@ -2753,29 +2814,19 @@ html[data-theme="dark"] .runtime-lab {
   }
 
   .simple-workspace {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr;
     width: min(100% - 28px, 720px);
-    flex-direction: column;
   }
 
-  .simple-todo,
-  .simple-guide {
-    position: static;
-    width: 100%;
-    max-height: none;
+  .learning-pane-header {
+    display: grid;
+    gap: 8px;
   }
 
-  .simple-todo {
-    order: 1;
-  }
-
-  .simple-guide {
-    order: 2;
-  }
-
-  .simple-main-column {
-    order: 3;
-    width: 100%;
+  .learning-pane-header p {
+    max-width: none;
+    text-align: left;
   }
 
   .memory-flow {
@@ -2895,6 +2946,26 @@ html[data-theme="dark"] .runtime-lab {
   .markdown-content {
     padding: 22px 17px 30px;
     font-size: 13px;
+  }
+
+  .simple-lecture-pane .markdown-content {
+    padding: 22px 17px 34px;
+  }
+
+  .lecture-pane-header {
+    padding: 18px 17px 15px;
+  }
+
+  .lecture-pane-goals {
+    padding-inline: 12px;
+  }
+
+  .lecture-pane-toc {
+    margin-inline: 12px;
+  }
+
+  .markdown-panel {
+    padding-inline: 12px;
   }
 
   .markdown-content h2 {
