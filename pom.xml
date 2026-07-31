@@ -6,9 +6,9 @@
 
     <groupId>com.caesaemc</groupId>
     <artifactId>juc-core-imp</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <name>JUC Core Implementation Course</name>
-    <description>面向资深 Java 开发者的 JUC 代码化课程</description>
+    <version>3.0.0-SNAPSHOT</version>
+    <name>JUC Core Course V3</name>
+    <description>参考《Java并发编程的艺术》并面向 Java 21 重构的代码化课程</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

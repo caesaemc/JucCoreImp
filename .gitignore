@@ -1,5 +1,6 @@
 target/
 jcstress-results-*.bin.gz
+.firecrawl/
 .idea/
 *.iml
 .DS_Store
