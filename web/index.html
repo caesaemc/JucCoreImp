@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Java 并发编程的艺术 V3：以可重复实验、源码任务和运行证据学习 JUC。"
+    />
+    <title>JUC LAB V3 · 第 01 课</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#lesson-workspace">跳到课程内容</a>
+
+    <header class="app-header">
+      <a class="brand" href="/" aria-label="JUC LAB V3 首页">
+        <span class="brand-mark" aria-hidden="true">J</span>
+        <span>
+          <strong>JUC LAB</strong>
+          <small>ART OF CONCURRENCY · V3</small>
+        </span>
+      </a>
+
+      <nav class="lesson-nav" aria-label="课程导航">
+        <button class="lesson-chip is-active" type="button" aria-current="page">
+          <span>01</span> 竞态与证据
+        </button>
+        <button class="lesson-chip" type="button" disabled title="完成第 01 课后开放">
+          <span>02</span> 生命周期 <i>锁定</i>
+        </button>
+        <button class="lesson-chip" type="button" disabled title="完成第 01 课后开放">
+          <span>03</span> JMM <i>锁定</i>
+        </button>
+        <button class="lesson-chip" type="button" disabled title="完成第 01 课后开放">
+          <span>04</span> 原子更新 <i>锁定</i>
+        </button>
+        <button class="lesson-chip" type="button" disabled title="完成第 01 课后开放">
+          <span>05</span> AQS <i>锁定</i>
+        </button>
+        <button class="lesson-chip" type="button" disabled title="完成第 01 课后开放">
+          <span>06</span> 并发工具 <i>锁定</i>
+        </button>
+        <button class="lesson-chip" type="button" disabled title="完成第 01 课后开放">
+          <span>07</span> 执行器 <i>锁定</i>
+        </button>
+        <button class="lesson-chip" type="button" disabled title="完成第 01 课后开放">
+          <span>08</span> Java 21 <i>锁定</i>
+        </button>
+      </nav>
+
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+        <span class="theme-icon" aria-hidden="true">☾</span>
+        <span class="theme-label">深色</span>
+      </button>
+    </header>
+
+    <main class="workspace" id="lesson-workspace">
+      <section class="course-pane" aria-labelledby="lesson-title">
+        <div class="course-content">
+          <header class="lesson-hero">
+            <div>
+              <p class="eyebrow"><span>LESSON 01</span> 原书第 1 章 · 约 2.5 小时</p>
+              <h1 id="lesson-title">先别加锁，先证明问题存在</h1>
+              <p class="hero-copy">
+                把一次并发错误拆成可观察的事件：谁读了共享状态、谁在本地计算、哪次写入覆盖了谁。
+              </p>
+            </div>
+            <div class="lesson-outcome" aria-label="本课最终交付">
+              <span>本课增量</span>
+              <strong>TaskHub 任务统计骨架</strong>
+              <p>可重复复现丢失更新，并用线程转储证明死锁。</p>
+            </div>
+          </header>
+
+          <section class="starter-grid" aria-label="本课开始信息">
+            <article class="panel delivery-card">
+              <div class="section-heading compact">
+                <div>
+                  <p class="kicker">DELIVERABLE</p>
+                  <h2>本课交付物</h2>
+                </div>
+                <span class="time-pill">150 min</span>
+              </div>
+              <dl class="delivery-list">
+                <div><dt>先运行</dt><dd>确定性竞态测试</dd></div>
+                <div><dt>你来写</dt><dd>TaskHub 统计接口骨架</dd></div>
+                <div><dt>留下证据</dt><dd>事件序列 + 线程转储</dd></div>
+              </dl>
+            </article>
+
+            <article class="panel todo-card">
+              <div class="section-heading compact">
+                <div>
+                  <p class="kicker">YOUR CHECKPOINTS</p>
+                  <h2>本课 Todo</h2>
+                </div>
+                <span class="todo-count" id="todo-count">0 / 8</span>
+              </div>
+              <div class="progress-track" aria-hidden="true">
+                <span id="todo-progress"></span>
+              </div>
+              <ul class="todo-list" id="todo-list">
+                <li>
+                  <label><input type="checkbox" data-todo="java21" /> <span>确认 Java 与 Maven 均运行在 Java 21</span></label>
+                </li>
+                <li>
+                  <label><input type="checkbox" data-todo="classify-state" /> <span>从源码找出共享字段与线程私有快照</span></label>
+                </li>
+                <li>
+                  <label><input type="checkbox" data-todo="trace-six-events" /> <span>用单步图解释丢失更新的六步交错</span></label>
+                </li>
+                <li>
+                  <label><input type="checkbox" data-todo="run-demos" /> <span>稳定运行两个 DEMO 测试</span></label>
+                </li>
+                <li>
+                  <label><input type="checkbox" data-todo="finish-task" /> <span>完成 TASK TODO 并通过显式验收</span></label>
+                </li>
+                <li>
+                  <label><input type="checkbox" data-todo="capture-deadlock" /> <span>用四条件解释死锁并读懂线程转储</span></label>
+                </li>
+                <li>
+                  <label><input type="checkbox" data-todo="interview" /> <span>完成六道面试题的不看稿口述</span></label>
+                </li>
+                <li>
+                  <label><input type="checkbox" data-todo="review" /> <span>把问题、误区和证据写入学习记录</span></label>
+                </li>
+              </ul>
+              <p class="todo-authority">这 8 项与讲义“本课结束条件”一致，是进入第 02 课的唯一门槛。</p>
+            </article>
+          </section>
+
+          <section class="panel lab-panel" id="concurrency-lab" tabindex="0" aria-labelledby="lab-title">
+            <div class="section-heading lab-heading">
+              <div>
+                <p class="kicker">CONCURRENCY WORKBENCH</p>
+                <h2 id="lab-title">并发实验台</h2>
+                <p>观察推理模型中堆共享字段与线程私有快照的职责。焦点位于实验台时，可用 ← → 单步，空格播放或暂停。</p>
+              </div>
+              <div class="lab-status" aria-live="polite">
+                <span class="status-dot"></span>
+                <span id="lab-status-text">已就绪</span>
+              </div>
+            </div>
+
+            <div class="experiment-tabs" role="tablist" aria-label="选择并发实验">
+              <button
+                class="experiment-tab is-active"
+                id="tab-race"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="experiment-stage"
+                data-experiment="race"
+              >
+                <span>01</span>
+                <strong>丢失更新</strong>
+                <small>read · add · write</small>
+              </button>
+              <button
+                class="experiment-tab"
+                id="tab-deadlock"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="experiment-stage"
+                data-experiment="deadlock"
+              >
+                <span>02</span>
+                <strong>死锁成环</strong>
+                <small>hold · wait · cycle</small>
+              </button>
+            </div>
+
+            <div class="control-strip" aria-label="动画控制">
+              <div class="transport-controls">
+                <button class="icon-button" id="reset-button" type="button" title="重置实验" aria-label="重置实验">↺</button>
+                <button class="icon-button" id="previous-button" type="button" title="上一步" aria-label="上一步">←</button>
+                <button class="play-button" id="play-button" type="button" aria-label="播放动画">
+                  <span aria-hidden="true">▶</span><strong>播放</strong>
+                </button>
+                <button class="icon-button" id="next-button" type="button" title="下一步" aria-label="下一步">→</button>
+              </div>
+              <div class="step-readout">
+                <span id="step-label">准备</span>
+                <strong><span id="step-current">0</span> / <span id="step-total">6</span></strong>
+              </div>
+              <label class="speed-control" for="speed-select">
+                速度
+                <select id="speed-select">
+                  <option value="1500">0.75×</option>
+                  <option value="1000" selected>1×</option>
+                  <option value="600">1.5×</option>
+                  <option value="350">2×</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="experiment-stage" id="experiment-stage" role="tabpanel" aria-labelledby="tab-race">
+              <div class="narration-bar">
+                <span id="narration-kind">观察目标</span>
+                <p id="narration-text">两个线程即将对同一个共享 counter 执行一次非原子的自增。</p>
+              </div>
+
+              <div class="race-scene" id="race-scene">
+                <div class="runtime-grid">
+                  <article class="runtime-card thread-card" id="thread-a-card">
+                    <header><span class="thread-avatar">A</span><div><strong>线程 A</strong><small>私有执行上下文</small></div></header>
+                    <dl>
+                      <div data-field="a-snapshot"><dt>snapshot</dt><dd id="a-snapshot">—</dd></div>
+                      <div data-field="a-next"><dt>next</dt><dd id="a-next">—</dd></div>
+                    </dl>
+                    <p class="thread-action" id="a-action">等待调度</p>
+                  </article>
+
+                  <div class="flow-connector" id="connector-a" aria-live="polite">
+                    <span class="flow-direction" aria-hidden="true">·</span>
+                    <small>无数据流</small>
+                  </div>
+
+                  <article class="runtime-card heap-card" id="heap-card">
+                    <header><span class="memory-icon" aria-hidden="true">◇</span><div><strong>共享堆</strong><small>所有线程可见</small></div></header>
+                    <div class="counter-object">
+                      <span>TaskStatistics</span>
+                      <p><code>counter</code><strong id="heap-counter">0</strong></p>
+                    </div>
+                    <p class="heap-note">唯一共享字段</p>
+                  </article>
+
+                  <div class="flow-connector" id="connector-b" aria-live="polite">
+                    <span class="flow-direction" aria-hidden="true">·</span>
+                    <small>无数据流</small>
+                  </div>
+
+                  <article class="runtime-card thread-card" id="thread-b-card">
+                    <header><span class="thread-avatar thread-b">B</span><div><strong>线程 B</strong><small>私有执行上下文</small></div></header>
+                    <dl>
+                      <div data-field="b-snapshot"><dt>snapshot</dt><dd id="b-snapshot">—</dd></div>
+                      <div data-field="b-next"><dt>next</dt><dd id="b-next">—</dd></div>
+                    </dl>
+                    <p class="thread-action" id="b-action">等待调度</p>
+                  </article>
+                </div>
+
+                <ol class="event-timeline" id="race-timeline" aria-label="丢失更新事件序列"></ol>
+                <p class="model-caveat">
+                  动画展示一条合法交错，不是线程调度录像。DEMO 只保证两个线程都基于旧值完成本地计算后才允许写回，
+                  不承诺 A/B 的实际运行先后。
+                </p>
+              </div>
+
+              <div class="deadlock-scene" id="deadlock-scene" hidden>
+                <div class="deadlock-runtime">
+                  <article class="deadlock-thread" id="dead-thread-a">
+                    <span class="thread-avatar">A</span>
+                    <div><strong>线程 A</strong><p id="dead-a-status">RUNNABLE · 尚未持锁</p></div>
+                  </article>
+                  <div class="lock-zone">
+                    <article class="lock-card" id="lock-one">
+                      <span>LOCK 1</span><strong>任务注册表锁</strong><p>owner：<b id="lock-one-owner">空闲</b></p>
+                    </article>
+                    <article class="lock-card" id="lock-two">
+                      <span>LOCK 2</span><strong>完成统计锁</strong><p>owner：<b id="lock-two-owner">空闲</b></p>
+                    </article>
+                  </div>
+                  <article class="deadlock-thread" id="dead-thread-b">
+                    <span class="thread-avatar thread-b">B</span>
+                    <div><strong>线程 B</strong><p id="dead-b-status">RUNNABLE · 尚未持锁</p></div>
+                  </article>
+                </div>
+
+                <section class="wait-graph" aria-labelledby="wait-graph-title">
+                  <div class="wait-graph-header">
+                    <div><span>WAIT-FOR GRAPH</span><h3 id="wait-graph-title">线程等待图</h3></div>
+                    <strong id="cycle-state">尚未成环</strong>
+                  </div>
+                  <div class="wait-edge-list">
+                    <div class="wait-edge" id="wait-edge-a"><b>A</b><span>等待 Lock 2（owner B）</span><b>B</b></div>
+                    <div class="wait-edge reverse" id="wait-edge-b"><b>B</b><span>等待 Lock 1（owner A）</span><b>A</b></div>
+                  </div>
+                  <div class="cycle-diagram" id="cycle-diagram" aria-label="A 等待 B，B 等待 A 的循环">
+                    <span class="cycle-node">A</span><i>等待 →</i><span class="cycle-node">B</span><i>← 等待</i>
+                  </div>
+                </section>
+
+                <ol class="event-timeline" id="deadlock-timeline" aria-label="死锁事件序列"></ol>
+              </div>
+
+              <aside class="event-console" aria-labelledby="event-console-title">
+                <header><h3 id="event-console-title">事件日志</h3><span id="event-count">0 events</span></header>
+                <ol id="event-log" aria-live="polite"></ol>
+              </aside>
+            </div>
+          </section>
+
+          <section class="panel source-panel" aria-labelledby="source-title">
+            <div class="section-heading">
+              <div>
+                <p class="kicker">SOURCE LINK</p>
+                <h2 id="source-title">源码联动</h2>
+                <p>文件来自当前仓库；保存 Java 文件后，此处会自动刷新。</p>
+              </div>
+              <div class="source-state"><span id="source-sync-dot"></span><span id="source-sync-text">正在连接</span></div>
+            </div>
+            <div class="source-role-key" aria-label="源码角色说明">
+              <span class="role-badge demo">只读 DEMO</span>
+              <span class="role-badge task">你来写 TASK</span>
+              <span class="role-badge test">自动验收 TEST</span>
+              <span class="role-badge locked">答案未解锁</span>
+            </div>
+            <div class="source-browser">
+              <div class="source-tabs" id="source-tabs" role="tablist" aria-label="源码文件"></div>
+              <div class="source-viewer">
+                <header class="source-meta">
+                  <span class="role-badge demo" id="active-source-role">DEMO</span>
+                  <code id="active-source-path">等待 Java 源文件生成…</code>
+                  <button class="text-button" id="reload-sources" type="button">刷新源码</button>
+                </header>
+                <div class="source-step-context" id="source-step-context" aria-live="polite">
+                  <span>当前步骤对应源码</span>
+                  <strong id="source-step-label">初始状态无需执行代码</strong>
+                  <code id="source-step-line">—</code>
+                </div>
+                <pre id="source-code" tabindex="0"><code>服务会从约定目录读取第 01 课的 DEMO / TASK / TEST 文件。</code></pre>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel test-panel" aria-labelledby="test-title">
+            <div class="section-heading">
+              <div>
+                <p class="kicker">PROOF, NOT HOPE</p>
+                <h2 id="test-title">测试命令区</h2>
+                <p>先用确定性试验证明问题，再显式运行 TASK 验收；本课不提前修复不安全基线。</p>
+              </div>
+            </div>
+            <div class="command-list">
+              <article>
+                <span>默认 DEMO 回归（TASK 未完成也应通过）</span>
+                <code>mvn -q test</code>
+                <button class="copy-button" type="button" data-copy="mvn -q test">复制</button>
+              </article>
+              <article>
+                <span>两个证据实验：丢失更新 + 真实死锁</span>
+                <code>mvn -q -Dtest=LostUpdateDemoTest,DeadlockDemoTest test</code>
+                <button class="copy-button" type="button" data-copy="mvn -q -Dtest=LostUpdateDemoTest,DeadlockDemoTest test">复制</button>
+              </article>
+              <article>
+                <span>TaskHub 作业（TODO 完成前预期失败）</span>
+                <code>mvn -q -Dtest=UnsafeTaskStatisticsAcceptance test</code>
+                <button class="copy-button" type="button" data-copy="mvn -q -Dtest=UnsafeTaskStatisticsAcceptance test">复制</button>
+              </article>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <aside class="notes-pane" aria-labelledby="notes-title">
+        <header class="notes-header">
+          <div>
+            <p class="kicker">LIVE LESSON NOTES</p>
+            <h2 id="notes-title">课程讲义</h2>
+          </div>
+          <button class="icon-button" id="reload-notes" type="button" title="重新载入当前文档" aria-label="重新载入当前文档">↻</button>
+        </header>
+        <div class="notes-tabs" role="tablist" aria-label="第一课文档">
+          <button class="notes-tab is-active" id="notes-tab-lesson" type="button" role="tab" aria-selected="true" data-notes-document="lesson">
+            课程讲义
+          </button>
+          <button class="notes-tab" id="notes-tab-review" type="button" role="tab" aria-selected="false" data-notes-document="review">
+            学习记录
+          </button>
+        </div>
+        <div class="notes-sync" role="status" aria-live="polite">
+          <span id="notes-sync-dot"></span>
+          <span id="notes-sync-text">正在读取 lesson01.md</span>
+          <time id="notes-sync-time"></time>
+        </div>
+        <div class="markdown-body" id="markdown-body">
+          <div class="notes-loading" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
